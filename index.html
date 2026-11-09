@@ -45,24 +45,11 @@
     </div>
   </div>
 
-  <!-- ŞAGİRD KABİNETİ -->
-  <div id="studentDashboard" class="student-dashboard hidden">
-    <div class="dashboard-header">
-      <h2>👋 Şəxsi Kabinet</h2>
-      <p>Xoş gəldiniz, <strong id="studentName"></strong></p>
-    </div>
-    <div class="dashboard-tabs">
-      <button class="dash-tab active" onclick="switchDashTab('exams')">📚 İmtahanlar</button>
-      <button class="dash-tab" onclick="switchDashTab('results')">📊 Nəticələrim</button>
-    </div>
-    <div id="dashExams" class="dash-section active">
-      <h3>Mövcud İmtahanlar</h3>
-      <div class="exam-grid" id="examGrid"></div>
-    </div>
-    <div id="dashResults" class="dash-section">
-      <h3>Mənim Nəticələrim</h3>
-      <div id="myResultsList"></div>
-    </div>
+  <!-- İMTAHAN SİYAHISI (Şagird üçün) -->
+  <div id="examListPage" class="exam-list-page hidden">
+    <h2>İmtahanlar</h2>
+    <div class="sub">Mövcud imtahanlardan birini seçin</div>
+    <div class="exam-grid" id="examGrid"></div>
   </div>
 
   <!-- İMTAHAN SƏHİFƏSİ -->
@@ -84,10 +71,10 @@
     </div>
     <div class="main-layout" id="mainLayout"></div>
   </div>
-  
+
   <!-- NƏTİCƏ VƏRƏQİ -->
   <div id="carnetPage" class="carnet-page hidden"></div>
-  
+
   <!-- MARKER KABİNETİ -->
   <div id="markerDashboard" class="marker-dashboard hidden">
     <div class="marker-header">
@@ -100,7 +87,7 @@
       <div id="markerStudentList"></div>
     </div>
   </div>
-  
+
   <!-- ADMİN PANEL -->
   <div id="adminPage" class="admin-page hidden">
     <h2>🛠️ Admin Panel</h2>
@@ -112,7 +99,7 @@
       <button class="admin-tab" onclick="switchAdminTab('results')">📊 Nəticələr</button>
       <button class="admin-tab" onclick="switchAdminTab('markers')">✍️ Markerlər</button>
     </div>
-    
+
     <div id="adminUsers" class="admin-section active">
       <div class="admin-card">
         <h3>Qeydiyyatdan keçmiş istifadəçilər</h3>
@@ -122,40 +109,37 @@
         </table>
       </div>
     </div>
-    
+
     <div id="adminExams" class="admin-section">
       <div class="admin-card">
         <h3>İmtahan siyahısı</h3>
-        <div id="examsList"></div>
+        <table class="exams-table">
+          <thead><tr><th>ID</th><th>Ad</th><th>Partlar</th><th>Ümumi sual</th></tr></thead>
+          <tbody id="examsTableBody"></tbody>
+        </table>
       </div>
     </div>
-    
+
     <div id="adminUpload" class="admin-section">
       <div class="admin-card">
-        <h3>📝 Yeni İmtahan Yarat</h3>
+        <h3>📝 İmtahan Yüklə (Partlar üzrə)</h3>
         <div style="margin-bottom:16px">
-          <label style="font-size:13px;font-weight:600;color:#374151">İmtahan adı:</label><br>
-          <input type="text" id="newExamTitle" placeholder="Məs: FCE Practice Test 2" style="width:100%;padding:10px;border:2px solid #e5e7eb;border-radius:8px;margin-top:8px">
-        </div>
-        <div style="margin-bottom:16px">
-          <label style="font-size:13px;font-weight:600;color:#374151">Açıqlama:</label><br>
-          <input type="text" id="newExamDesc" placeholder="İmtahan haqqında qısa məlumat" style="width:100%;padding:10px;border:2px solid #e5e7eb;border-radius:8px;margin-top:8px">
-        </div>
-        <div style="margin-bottom:16px">
-          <label style="font-size:13px;font-weight:600;color:#374151">İkon:</label><br>
-          <select id="newExamIcon" style="padding:10px;border:2px solid #e5e7eb;border-radius:8px;margin-top:8px">
-            <option value="📚">📚 Kitab</option>
-            <option value="📝">📝 Yazı</option>
-            <option value="🎯">🎯 Hədəf</option>
-            <option value="🏆">🏆 Kubok</option>
-            <option value="📖">📖 Oxu</option>
+          <label style="font-size:13px;font-weight:600;color:#374151">Part seçin:</label><br>
+          <select class="exam-select" id="uploadPartSelect" onchange="renderUploadForm()" style="margin-bottom:12px">
+            <option value="part1">Part 1 — Multiple Choice Cloze</option>
+            <option value="part2">Part 2 — Open Cloze</option>
+            <option value="part3">Part 3 — Word Formation</option>
+            <option value="part4">Part 4 — Key Word Transformation</option>
+            <option value="part5">Part 5 — Reading</option>
+            <option value="part6">Part 6 — Gapped Text</option>
+            <option value="part7">Part 7 — Multiple Matching</option>
           </select>
         </div>
-        <button onclick="createNewExam()" style="padding:12px 24px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">✅ İmtahan Yarat</button>
-        <div id="uploadStatus" style="margin-top:12px;font-size:13px;color:#666"></div>
+        <div id="uploadForm"></div>
+        <div id="uploadStatus" style="font-size:13px;color:#666;margin-top:10px"></div>
       </div>
     </div>
-    
+
     <div id="adminPoints" class="admin-section">
       <div class="admin-card">
         <h3>Hər sual üçün bal təyini</h3>
@@ -166,14 +150,14 @@
         <div id="pointsEditor"></div>
       </div>
     </div>
-    
+
     <div id="adminResults" class="admin-section">
       <div class="admin-card">
         <h3>Şagird nəticələri</h3>
         <div id="studentResultsList"></div>
       </div>
     </div>
-    
+
     <div id="adminMarkers" class="admin-section">
       <div class="admin-card">
         <h3>Marker İdarəetməsi</h3>
