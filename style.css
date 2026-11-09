@@ -280,16 +280,212 @@ body { font-family: 'Inter', sans-serif; background: #f0f0eb; color: #222; min-h
 #pdfUpload:hover { border-color: #2563eb; }
 #markersList { margin-top: 20px; }
 
+/* ==================== MOBİL GÖRÜNÜŞ ==================== */
 @media (max-width: 900px) {
-  .main-layout { flex-direction: column; }
-  .left-panel { width: 100%; height: 50%; border-right: none; border-bottom: 2px solid #e5e7eb; }
-  .right-panel { width: 100%; height: 50%; }
-  .transition-stats .stats-grid { grid-template-columns: 1fr; }
-  .results-breakdown { flex-wrap: wrap; }
-  .breakdown-item { min-width: calc(33% - 8px); }
-  .carnet-student { grid-template-columns: 1fr; }
-  .exam-nav-buttons { gap: 4px; }
-  .part-nav-btn { padding: 4px 8px; font-size: 11px; }
-  .result-nav-btn { padding: 4px 8px; font-size: 11px; }
-  .marker-stats { grid-template-columns: 1fr; }
+  .top-nav {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .top-nav .logo {
+    font-size: 14px;
+    flex: 1 1 100%;
+    text-align: center;
+  }
+  .exam-nav-buttons {
+    order: 3;
+    flex: 1 1 100%;
+    justify-content: center;
+    gap: 4px;
+  }
+  .part-nav-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  .result-nav-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+    margin-left: 0;
+  }
+  .top-nav .user-info {
+    font-size: 12px;
+    gap: 8px;
+  }
+  .logout-btn {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+  
+  .main-layout {
+    flex-direction: column;
+    height: auto;
+  }
+  .left-panel {
+    width: 100%;
+    height: auto;
+    max-height: 50vh;
+    border-right: none;
+    border-bottom: 2px solid #e5e7eb;
+    padding: 20px 15px;
+  }
+  .left-panel h2 {
+    font-size: 20px;
+  }
+  .right-panel {
+    width: 100%;
+    height: auto;
+  }
+  .q-content {
+    padding: 15px;
+  }
+  
+  .module-bar {
+    flex-wrap: wrap;
+    padding: 10px 15px;
+    gap: 10px;
+  }
+  .module-progress {
+    width: 100%;
+    margin-left: 0;
+  }
+  .module-progress-bar {
+    flex: 1;
+  }
+  
+  .q-numbers-grid {
+    gap: 4px;
+  }
+  .q-num {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+  }
+  
+  .q-card {
+    padding: 15px;
+  }
+  .q-card-header {
+    gap: 10px;
+  }
+  .q-number {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+  .q-title {
+    font-size: 13px;
+  }
+  .opt-text {
+    font-size: 13px;
+  }
+  
+  .q-nav {
+    flex-wrap: wrap;
+    padding: 10px 15px;
+    gap: 8px;
+  }
+  .nav-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+  
+  .transition-stats .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .transition-card {
+    padding: 20px;
+    margin: 10px;
+  }
+  
+  .results-breakdown {
+    flex-wrap: wrap;
+  }
+  .breakdown-item {
+    min-width: calc(33% - 8px);
+  }
+  .results-card {
+    padding: 20px;
+    margin: 10px;
+  }
+  
+  .carnet-student {
+    grid-template-columns: 1fr;
+  }
+  .carnet-card {
+    padding: 20px;
+  }
+  .carnet-table {
+    font-size: 12px;
+  }
+  .carnet-table th, .carnet-table td {
+    padding: 8px 6px;
+  }
+  
+  .marker-stats {
+    grid-template-columns: 1fr;
+  }
+  .marker-header {
+    padding: 20px;
+  }
+  .marker-header h2 {
+    font-size: 22px;
+  }
+  
+  .admin-tabs {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .admin-tab {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  .admin-page {
+    padding: 15px 10px;
+  }
+  .admin-card {
+    padding: 15px;
+  }
+  
+  .users-table, .exams-table {
+    font-size: 12px;
+  }
+  .users-table th, .users-table td,
+  .exams-table th, .exams-table td {
+    padding: 8px 6px;
+  }
+  .btn-sm {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  
+  .exam-grid {
+    grid-template-columns: 1fr;
+  }
+  .exam-list-page {
+    padding: 20px 15px;
+  }
+  
+  .auth-card {
+    padding: 25px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .top-nav .logo {
+    font-size: 12px;
+  }
+  .part-nav-btn {
+    padding: 3px 6px;
+    font-size: 10px;
+  }
+  .q-num {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+  }
+  .admin-tab {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
 }

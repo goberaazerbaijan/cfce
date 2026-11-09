@@ -1,7 +1,6 @@
 // ==================== API KONFİQURASİYASI ====================
 const API_URL = 'https://cfce-backend.onrender.com/api';
 
-// Köməkçi funksiyalar
 async function apiGet(endpoint, params = {}) {
   const url = new URL(`${API_URL}/${endpoint}`);
   Object.keys(params).forEach(key => {
@@ -60,7 +59,6 @@ async function apiDelete(endpoint, id) {
   }
 }
 
-// ✅ YENİLƏNMİŞ: Filter olduqda /filter endpoint-indən istifadə et
 async function dbQuery(table, filters = {}) {
   if (Object.keys(filters).length > 0) {
     return await apiGet(`${table}/filter`, filters);
@@ -68,17 +66,9 @@ async function dbQuery(table, filters = {}) {
   return await apiGet(table);
 }
 
-async function dbInsert(table, record) {
-  return await apiPost(table, record);
-}
-
-async function dbUpdate(table, id, update) {
-  return await apiPut(table, id, update);
-}
-
-async function dbDelete(table, id) {
-  return await apiDelete(table, id);
-}
+async function dbInsert(table, record) { return await apiPost(table, record); }
+async function dbUpdate(table, id, update) { return await apiPut(table, id, update); }
+async function dbDelete(table, id) { return await apiDelete(table, id); }
 
 // ==================== DATA ====================
 const EXAMS = { fce_full: { id:'fce_full', title:'FCE Full Practice Test', icon:'📚', description:'Tam FCE Reading & Use of English imtahanı (7 Part)', parts:['part1','part2','part3','part4','part5','part6','part7'] } };
@@ -102,7 +92,6 @@ const part7Data = { id:'part7',moduleNum:7,moduleTitle:"Part 7 — Multiple Matc
 const MODULES = {part1:part1Data,part2:part2Data,part3:part3Data,part4:part4Data,part5:part5Data,part6:part6Data,part7:part7Data};
 const MODULE_ORDER = ['part1','part2','part3','part4','part5','part6','part7'];
 
-// ==================== STATE ====================
 let currentUser = null;
 let currentExamId = null, currentModuleId = null, currentQ = 0, timerInterval, seconds = 0, autoAdvanceTimer = null, isTransitioning = false;
 
@@ -110,7 +99,6 @@ function getSession(){ try { return JSON.parse(localStorage.getItem('fce_current
 function saveSession(user){ localStorage.setItem('fce_current', JSON.stringify(user)); }
 function clearSession(){ localStorage.removeItem('fce_current'); }
 
-// ==================== INIT ====================
 async function initDB(){
   const admins = await dbQuery('users', { email: 'admin@fce.com' });
   if(admins.length === 0){
@@ -139,7 +127,6 @@ async function initDB(){
   }
 }
 
-// ==================== AUTH ====================
 function switchAuthTab(tab){
   document.querySelectorAll('.auth-tab').forEach(t=>t.classList.remove('active'));
   event.target.classList.add('active');
@@ -213,7 +200,6 @@ function enterApp(){
   else showExamList();
 }
 
-// ==================== MARKER DASHBOARD ====================
 async function showMarkerDashboard(){
   document.getElementById('examListPage').classList.add('hidden');
   document.getElementById('examPage').classList.add('hidden');
@@ -270,7 +256,6 @@ async function renderMarkerStudentList(){
   container.innerHTML = html;
 }
 
-// ==================== EXAM NAV BUTTONS ====================
 function renderExamNavButtons(){
   const container = document.getElementById('examNavButtons');
   if(!container) return;
@@ -313,7 +298,6 @@ function showCarnetFromCurrent(){
   showCarnet();
 }
 
-// ==================== EXAM LIST ====================
 async function showExamList(){
   document.getElementById('examPage').classList.add('hidden');
   document.getElementById('carnetPage').classList.add('hidden');
@@ -342,7 +326,6 @@ async function showExamList(){
   });
 }
 
-// ==================== EXAM ====================
 function startExam(examId){
   currentExamId = examId;
   currentModuleId = EXAMS[examId].parts[0];
@@ -820,7 +803,6 @@ function startTimer(){
 }
 function stopTimer(){ clearInterval(timerInterval); }
 
-// ==================== ADMIN ====================
 async function showAdmin(){
   document.getElementById('examListPage').classList.add('hidden');
   document.getElementById('examPage').classList.add('hidden');
@@ -852,7 +834,7 @@ function switchAdminTab(tab){
 }
 
 function renderPDFUpload(){
-  document.getElementById('uploadStatus').textContent = 'PDF faylını seçin və yükləyin. Sistem avtomatik olaraq imtahan yaradacaq.';
+  document.getElementById('uploadStatus').textContent = 'PDF faylını seçin və yükləyin.';
 }
 
 async function handlePDFUpload(event){
@@ -870,16 +852,28 @@ async function handlePDFUpload(event){
       const pageText = textContent.items.map(item => item.str).join(' ');
       fullText += pageText + '\n';
     }
-    statusEl.textContent = 'PDF uğurla oxundu.';
+    statusEl.textContent = `✅ PDF uğurla oxundu! (${pdf.numPages} səhifə, ${fullText.length} simvol)`;
     parsePDFAndCreateExam(fullText);
   } catch(err){
     console.error(err);
-    statusEl.textContent = 'Xəta: PDF oxuna bilmədi.';
+    statusEl.textContent = '❌ Xəta: PDF oxuna bilmədi.';
   }
 }
 
-function parsePDFAndCreateExam(text){
-  alert('PDF oxundu. İmtahanın strukturu aşağıdakı kimidir:\n\n' + text.substring(0, 500) + '...\n\n(Qeyd: Tam avtomatik PDF parser üçün əlavə kod lazımdır.)');
+function parsePDFAndCreateExam(text) {
+  console.log('PDF mətni:', text);
+  if (!text || text.trim().length === 0) {
+    alert('❌ PDF-dən mətn çıxarıla bilmədi. Fayl düzgün formatda deyil.');
+    return;
+  }
+  const preview = text.substring(0, 1000);
+  console.log('İlk 1000 simvol:', preview);
+  const message = `✅ PDF uğurla oxundu!\n\n` +
+    `📝 Mətn uzunluğu: ${text.length} simvol\n\n` +
+    `📋 İlk 500 simvol:\n${preview.substring(0, 500)}...\n\n` +
+    `⚠️ Qeyd: Tam avtomatik PDF parsing hələ hazırlanmayıb.\n` +
+    `İmtahanı manual olaraq əlavə etmək üçün "İmtahanlar" bölməsindən istifadə edin.`;
+  alert(message);
 }
 
 async function renderAdminUsers(){
@@ -1183,5 +1177,4 @@ async function removeMarker(email){
   renderMarkersList(); renderMarkerUserSelect(); renderAdminUsers();
 }
 
-// ==================== INIT ====================
 initDB().then(() => { if(currentUser) enterApp(); });
