@@ -4,7 +4,6 @@
 body { font-family: 'Inter', sans-serif; background: #f0f0eb; color: #222; min-height: 100vh; }
 .hidden { display: none !important; }
 
-/* AUTH */
 .auth-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #1a1a2e 0%, #2d2d4e 100%); padding: 20px; }
 .auth-card { background: #fff; border-radius: 16px; padding: 40px; max-width: 420px; width: 100%; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
 .auth-card h1 { font-family: 'Merriweather', serif; font-size: 26px; color: #1a1a2e; text-align: center; margin-bottom: 6px; }
@@ -21,7 +20,6 @@ body { font-family: 'Inter', sans-serif; background: #f0f0eb; color: #222; min-h
 .auth-error { background: #fee2e2; color: #dc2626; padding: 10px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; display: none; }
 .auth-success { background: #dcfce7; color: #16a34a; padding: 10px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; display: none; }
 
-/* TOP NAV */
 .top-nav { background: #1a1a2e; color: #fff; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; height: 56px; gap: 15px; }
 .top-nav .logo { font-family: 'Merriweather', serif; font-size: 16px; font-weight: 700; white-space: nowrap; }
 .top-nav .logo span { color: #fbbf24; }
@@ -30,7 +28,6 @@ body { font-family: 'Inter', sans-serif; background: #f0f0eb; color: #222; min-h
 .logout-btn { background: transparent; border: 2px solid #fbbf24; color: #fbbf24; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-family: 'Inter', sans-serif; transition: all 0.2s; }
 .logout-btn:hover { background: #fbbf24; color: #1a1a2e; }
 
-/* STUDENT DASHBOARD */
 .student-dashboard { padding: 30px 24px; max-width: 1200px; margin: 0 auto; }
 .dashboard-header { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #fff; padding: 30px; border-radius: 16px; margin-bottom: 24px; }
 .dashboard-header h2 { font-family: 'Merriweather', serif; font-size: 28px; margin-bottom: 8px; }
@@ -42,7 +39,6 @@ body { font-family: 'Inter', sans-serif; background: #f0f0eb; color: #222; min-h
 .dash-section.active { display: block; }
 .dash-section h3 { font-family: 'Merriweather', serif; font-size: 20px; color: #1a1a2e; margin-bottom: 16px; }
 
-/* EXAM NAV */
 .exam-nav-buttons { flex: 1; display: none; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; }
 .exam-nav-buttons.show { display: flex; }
 .part-nav-btn { padding: 6px 14px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; transition: all 0.2s; }
@@ -53,10 +49,6 @@ body { font-family: 'Inter', sans-serif; background: #f0f0eb; color: #222; min-h
 .btn-finish-exam { background: #dc2626 !important; }
 .btn-finish-exam:hover { background: #b91c1c !important; }
 
-/* EXAM LIST */
-.exam-list-page { padding: 40px 24px; max-width: 1000px; margin: 0 auto; }
-.exam-list-page h2 { font-family: 'Merriweather', serif; font-size: 28px; color: #1a1a2e; margin-bottom: 8px; }
-.exam-list-page .sub { color: #666; margin-bottom: 30px; }
 .exam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
 .exam-card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); cursor: pointer; transition: all 0.2s; border: 2px solid transparent; }
 .exam-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); border-color: #1a1a2e; }
@@ -70,7 +62,6 @@ body { font-family: 'Inter', sans-serif; background: #f0f0eb; color: #222; min-h
 .status-partial { background: #fef3c7; color: #92400e; }
 .status-new { background: #f3f4f6; color: #6b7280; }
 
-/* MODULE BAR */
 .module-bar { background: #fff; border-bottom: 2px solid #e5e7eb; padding: 12px 24px; display: flex; align-items: center; gap: 16px; }
 .module-badge { display: flex; align-items: center; gap: 10px; }
 .module-num { background: #1a1a2e; color: #fbbf24; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; }
@@ -81,7 +72,6 @@ body { font-family: 'Inter', sans-serif; background: #f0f0eb; color: #222; min-h
 .module-progress-fill { height: 100%; background: linear-gradient(90deg, #1a1a2e, #fbbf24); border-radius: 3px; transition: width 0.4s; }
 .module-progress-text { font-size: 13px; font-weight: 600; color: #666; min-width: 40px; }
 
-/* MAIN LAYOUT */
 .main-layout { display: flex; height: calc(100vh - 56px - 62px); position: relative; }
 .left-panel { width: 55%; background: #fff; border-right: 2px solid #e5e7eb; overflow-y: auto; padding: 30px 35px; display: flex; flex-direction: column; }
 .left-panel h2 { font-family: 'Merriweather', serif; font-size: 24px; text-align: center; color: #1a1a2e; margin-bottom: 4px; }
