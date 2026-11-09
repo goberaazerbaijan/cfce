@@ -1,6 +1,5 @@
 // ==================== API KONFİQURASİYASI ====================
-// ⚠️ Bu URL-i öz Render backend URL-inizlə əvəz edin!
-const API_URL = 'https://fce-backend.onrender.com/api';
+const API_URL = 'https://cfce-backend.onrender.com/api';
 
 // Köməkçi funksiyalar
 async function apiGet(endpoint, params = {}) {
@@ -52,9 +51,7 @@ async function apiPut(endpoint, id, body) {
 
 async function apiDelete(endpoint, id) {
   try {
-    const res = await fetch(`${API_URL}/${endpoint}/${id}`, {
-      method: 'DELETE'
-    });
+    const res = await fetch(`${API_URL}/${endpoint}/${id}`, { method: 'DELETE' });
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
     return true;
   } catch (error) {
@@ -63,9 +60,12 @@ async function apiDelete(endpoint, id) {
   }
 }
 
-// Verilənlər bazası funksiyaları
+// ✅ YENİLƏNMİŞ: Filter olduqda /filter endpoint-indən istifadə et
 async function dbQuery(table, filters = {}) {
-  return await apiGet(table, filters);
+  if (Object.keys(filters).length > 0) {
+    return await apiGet(`${table}/filter`, filters);
+  }
+  return await apiGet(table);
 }
 
 async function dbInsert(table, record) {
@@ -106,32 +106,17 @@ const MODULE_ORDER = ['part1','part2','part3','part4','part5','part6','part7'];
 let currentUser = null;
 let currentExamId = null, currentModuleId = null, currentQ = 0, timerInterval, seconds = 0, autoAdvanceTimer = null, isTransitioning = false;
 
-// Sessiya idarəetməsi
-function getSession(){
-  try { return JSON.parse(localStorage.getItem('fce_current')); } catch(e){ return null; }
-}
-function saveSession(user){
-  localStorage.setItem('fce_current', JSON.stringify(user));
-}
-function clearSession(){
-  localStorage.removeItem('fce_current');
-}
+function getSession(){ try { return JSON.parse(localStorage.getItem('fce_current')); } catch(e){ return null; } }
+function saveSession(user){ localStorage.setItem('fce_current', JSON.stringify(user)); }
+function clearSession(){ localStorage.removeItem('fce_current'); }
 
 // ==================== INIT ====================
 async function initDB(){
-  // Admin istifadəçisini yoxla və yarat
   const admins = await dbQuery('users', { email: 'admin@fce.com' });
   if(admins.length === 0){
-    await dbInsert('users', {
-      name: 'Admin',
-      email: 'admin@fce.com',
-      password: 'admin123',
-      role: 'admin'
-    });
+    await dbInsert('users', { name: 'Admin', email: 'admin@fce.com', password: 'admin123', role: 'admin' });
     console.log('✅ Admin istifadəçisi yaradıldı');
   }
-  
-  // İmtahan ballarını yoxla
   const points = await dbQuery('exam_points', { exam_id: 'fce_full' });
   if(points.length === 0){
     const defaultPoints = [];
@@ -139,12 +124,7 @@ async function initDB(){
       const m = MODULES[pid];
       const items = m.questions || m.gaps || [];
       items.forEach(it => {
-        defaultPoints.push({
-          exam_id: 'fce_full',
-          part_id: pid,
-          question_num: it.num,
-          points: 1
-        });
+        defaultPoints.push({ exam_id: 'fce_full', part_id: pid, question_num: it.num, points: 1 });
       });
     });
     if(defaultPoints.length > 0){
@@ -152,14 +132,10 @@ async function initDB(){
       console.log('✅ Default ballar yaradıldı');
     }
   }
-  
-  // Sessiya bərpa
   const session = getSession();
   if(session){
     const users = await dbQuery('users', { id: session.id });
-    if(users.length > 0){
-      currentUser = users[0];
-    }
+    if(users.length > 0) currentUser = users[0];
   }
 }
 
@@ -191,11 +167,9 @@ async function doLogin(){
   const email = document.getElementById('loginEmail').value.trim().toLowerCase();
   const pass = document.getElementById('loginPassword').value;
   if(!email || !pass){ showAuthError('Email və parol daxil edin'); return; }
-  
   const users = await dbQuery('users', { email: email });
   const user = users.find(u => u.password === pass);
   if(!user){ showAuthError('Email və ya parol yanlışdır'); return; }
-  
   currentUser = user;
   saveSession(user);
   enterApp();
@@ -208,19 +182,10 @@ async function doRegister(){
   if(!name || !email || !pass){ showAuthError('Bütün sahələri doldurun'); return; }
   if(pass.length < 6){ showAuthError('Parol minimum 6 simvol olmalıdır'); return; }
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ showAuthError('Düzgün email daxil edin'); return; }
-  
   const users = await dbQuery('users', { email: email });
   if(users.length > 0){ showAuthError('Bu email artıq qeydiyyatdan keçib'); return; }
-  
-  const newUser = await dbInsert('users', {
-    name: name,
-    email: email,
-    password: pass,
-    role: 'student'
-  });
-  
+  const newUser = await dbInsert('users', { name: name, email: email, password: pass, role: 'student' });
   if(!newUser){ showAuthError('Xəta baş verdi'); return; }
-  
   showAuthSuccess('Qeydiyyat uğurlu! İndi giriş edin.');
   setTimeout(() => {
     document.querySelectorAll('.auth-tab')[0].click();
@@ -243,7 +208,6 @@ function enterApp(){
   document.getElementById('authPage').classList.add('hidden');
   document.getElementById('mainApp').classList.remove('hidden');
   document.getElementById('userDisplay').textContent = `${currentUser.name} (${currentUser.role==='admin'?'Admin':currentUser.role==='marker'?'Marker':'Şagird'})`;
-  
   if(currentUser.role === 'admin') showAdmin();
   else if(currentUser.role === 'marker') showMarkerDashboard();
   else showExamList();
@@ -257,7 +221,6 @@ async function showMarkerDashboard(){
   document.getElementById('adminPage').classList.add('hidden');
   document.getElementById('markerDashboard').classList.remove('hidden');
   hideExamNavButtons();
-  
   document.getElementById('markerName').textContent = currentUser.name;
   await renderMarkerStats();
   await renderMarkerStudentList();
@@ -267,14 +230,12 @@ async function renderMarkerStats(){
   const container = document.getElementById('markerStats');
   const students = await dbQuery('users', { role: 'student' });
   const totalStudents = students.length;
-  
   let totalExams = 0, totalEdited = 0;
   for(const student of students){
     const scores = await dbQuery('scores', { user_id: student.id });
     totalExams += scores.length;
     scores.forEach(s => { if(s.marker_edited) totalEdited++; });
   }
-  
   container.innerHTML = `
     <div class="marker-stat-card"><div class="stat-label">👥 Şagird Sayı</div><div class="stat-value">${totalStudents}</div></div>
     <div class="marker-stat-card"><div class="stat-label">📝 Tamamlanan İmtahan</div><div class="stat-value">${totalExams}</div></div>
@@ -285,27 +246,15 @@ async function renderMarkerStats(){
 async function renderMarkerStudentList(){
   const container = document.getElementById('markerStudentList');
   const students = await dbQuery('users', { role: 'student' });
-  
-  if(students.length === 0){
-    container.innerHTML = '<div class="no-data">Heç bir şagird yoxdur</div>';
-    return;
-  }
-  
+  if(students.length === 0){ container.innerHTML = '<div class="no-data">Heç bir şagird yoxdur</div>'; return; }
   let html = '';
   for(const user of students){
     const scores = await dbQuery('scores', { user_id: user.id });
     const totalPoints = scores.reduce((sum, s) => sum + (s.total_points || 0), 0);
     const maxPoints = scores.reduce((sum, s) => sum + (s.max_points || 0), 0);
-    
     html += `<div class="marker-student-item">
-      <div class="student-header">
-        <div class="student-name">${user.name}</div>
-        <div class="student-email">${user.email}</div>
-      </div>
-      <div class="student-info">
-        Tamamlanan imtahan: ${scores.length} • Ümumi bal: <strong>${totalPoints}/${maxPoints}</strong>
-      </div>`;
-    
+      <div class="student-header"><div class="student-name">${user.name}</div><div class="student-email">${user.email}</div></div>
+      <div class="student-info">Tamamlanan imtahan: ${scores.length} • Ümumi bal: <strong>${totalPoints}/${maxPoints}</strong></div>`;
     if(scores.length > 0){
       html += `<div style="margin-top:10px">`;
       for(const sc of scores){
@@ -346,12 +295,8 @@ function goToPart(pid){
   if(!currentExamId || !EXAMS[currentExamId]) return;
   if(!EXAMS[currentExamId].parts.includes(pid)) return;
   if(pid === currentModuleId) return;
-  currentModuleId = pid;
-  currentQ = 0;
-  renderLayout();
-  renderText();
-  renderQuestion();
-  renderExamNavButtons();
+  currentModuleId = pid; currentQ = 0;
+  renderLayout(); renderText(); renderQuestion(); renderExamNavButtons();
 }
 
 function showCarnetFromCurrent(){
@@ -376,14 +321,11 @@ async function showExamList(){
   document.getElementById('markerDashboard').classList.add('hidden');
   document.getElementById('examListPage').classList.remove('hidden');
   hideExamNavButtons();
-  
   const grid = document.getElementById('examGrid');
   grid.innerHTML = '';
-  
   const scores = await dbQuery('scores', { user_id: currentUser.id });
   const scoresMap = {};
   scores.forEach(s => { scoresMap[s.exam_id] = s; });
-  
   Object.values(EXAMS).forEach(exam => {
     const score = scoresMap[exam.id];
     let statusHtml = '<span class="status status-new">Yeni</span>';
@@ -404,18 +346,13 @@ async function showExamList(){
 function startExam(examId){
   currentExamId = examId;
   currentModuleId = EXAMS[examId].parts[0];
-  currentQ = 0;
-  seconds = 0;
+  currentQ = 0; seconds = 0;
   document.getElementById('examListPage').classList.add('hidden');
   document.getElementById('examPage').classList.remove('hidden');
   document.getElementById('carnetPage').classList.add('hidden');
   document.getElementById('adminPage').classList.add('hidden');
   document.getElementById('markerDashboard').classList.add('hidden');
-  renderLayout();
-  renderText();
-  renderQuestion();
-  startTimer();
-  renderExamNavButtons();
+  renderLayout(); renderText(); renderQuestion(); startTimer(); renderExamNavButtons();
 }
 
 function getCurrentModule(){ return MODULES[currentModuleId]; }
@@ -641,7 +578,6 @@ function renderQuestion(){
 
 function getTotalQuestions(mod){ return (mod.questions || mod.gaps || []).length; }
 function getAnsweredCount(mod){ const answers = getAnswers(); const items = mod.questions || mod.gaps || []; return items.filter(it => answers[it.num]).length; }
-function getCurrentAnswer(){ const mod = getCurrentModule(); const answers = getAnswers(); const items = mod.questions || mod.gaps || []; return answers[items[currentQ].num] || ''; }
 
 function selectOption(letter){
   if(isTransitioning) return;
@@ -651,8 +587,7 @@ function selectOption(letter){
   if(answers[q.num] === letter) return;
   answers[q.num] = letter;
   saveSession(currentUser);
-  renderText();
-  renderQuestion();
+  renderText(); renderQuestion();
   clearTimeout(autoAdvanceTimer);
   autoAdvanceTimer = setTimeout(() => {
     if(currentQ === mod.questions.length - 1) showTransitionConfirmation();
@@ -668,8 +603,7 @@ function selectSentence(letter){
   if(answers[g.num] === letter) return;
   answers[g.num] = letter;
   saveSession(currentUser);
-  renderText();
-  renderQuestion();
+  renderText(); renderQuestion();
   clearTimeout(autoAdvanceTimer);
   autoAdvanceTimer = setTimeout(() => {
     if(currentQ === mod.gaps.length - 1) showTransitionConfirmation();
@@ -682,8 +616,7 @@ function selectPerson(qNum, letter){
   if(answers[qNum] === letter) return;
   answers[qNum] = letter;
   saveSession(currentUser);
-  renderText();
-  renderQuestion();
+  renderText(); renderQuestion();
   const mod = getCurrentModule();
   clearTimeout(autoAdvanceTimer);
   autoAdvanceTimer = setTimeout(() => {
@@ -750,21 +683,14 @@ function showTransitionConfirmation(){
 function reviewCurrent(){
   document.getElementById('transitionScreen').classList.remove('show');
   currentQ = 0;
-  renderText();
-  renderQuestion();
+  renderText(); renderQuestion();
 }
 
 function continueToNext(){
   document.getElementById('transitionScreen').classList.remove('show');
   const nextId = getNextModuleId();
-  if(nextId){
-    currentModuleId = nextId;
-    currentQ = 0;
-    renderLayout();
-    renderText();
-    renderQuestion();
-    renderExamNavButtons();
-  } else showFinalResults();
+  if(nextId){ currentModuleId = nextId; currentQ = 0; renderLayout(); renderText(); renderQuestion(); renderExamNavButtons(); }
+  else showFinalResults();
 }
 
 function normalizeAnswer(t){ return t ? t.trim().toUpperCase().replace(/\s+/g, ' ') : ''; }
@@ -777,10 +703,8 @@ async function showFinalResults(){
     if(!pointsMap[p.part_id]) pointsMap[p.part_id] = {};
     pointsMap[p.part_id][p.question_num] = p.points;
   });
-  
   let totalCorrect = 0, totalPoints = 0, earnedPoints = 0, totalQ = 0;
   const breakdown = [], review = [];
-
   for(const pid of exam.parts){
     const m = MODULES[pid];
     const answers = currentUser.answers?.[currentExamId]?.[pid] || {};
@@ -794,21 +718,11 @@ async function showFinalResults(){
       if(m.questions && m.questions.includes(it)) correct = answers[it.num] === it.answer;
       else if(m.gaps && m.gaps.includes(it)) correct = normalizeAnswer(answers[it.num]) === it.answer;
       if(correct){ pCorrect++; pEarned += pt; totalCorrect++; }
-      review.push({
-        part: pid, num: it.num, userAns: answers[it.num] || '—',
-        correct: correct, answer: it.answer, points: pt,
-        earned: correct ? pt : 0, given: it.given,
-        personName: pid === 'part7' ? m.people[it.answer]?.name : null,
-        explanation: it.explanation
-      });
+      review.push({ part: pid, num: it.num, userAns: answers[it.num] || '—', correct: correct, answer: it.answer, points: pt, earned: correct ? pt : 0, given: it.given, personName: pid === 'part7' ? m.people[it.answer]?.name : null, explanation: it.explanation });
     }
-    breakdown.push({
-      label: `Part ${m.moduleNum}`, score: pCorrect, total: items.length,
-      points: pEarned, maxPoints: items.reduce((s, it) => s + (pointsMap[pid]?.[it.num] ?? 1), 0)
-    });
+    breakdown.push({ label: `Part ${m.moduleNum}`, score: pCorrect, total: items.length, points: pEarned, maxPoints: items.reduce((s, it) => s + (pointsMap[pid]?.[it.num] ?? 1), 0) });
     earnedPoints += pEarned;
   }
-
   const pct = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0;
   let grade, gradeText;
   if(pct >= 90){ grade = 5; gradeText = 'Əla'; }
@@ -816,61 +730,28 @@ async function showFinalResults(){
   else if(pct >= 60){ grade = 3; gradeText = 'Orta'; }
   else if(pct >= 40){ grade = 2; gradeText = 'Qənaətbəxş'; }
   else { grade = 1; gradeText = 'Qeyri-qənaətbəxş'; }
-
-  const scoreRecord = await dbInsert('scores', {
-    user_id: currentUser.id,
-    exam_id: currentExamId,
-    total_points: earnedPoints,
-    max_points: totalPoints,
-    percent: pct,
-    correct_count: totalCorrect,
-    total_questions: totalQ,
-    grade: grade,
-    grade_text: gradeText
-  });
-
+  const scoreRecord = await dbInsert('scores', { user_id: currentUser.id, exam_id: currentExamId, total_points: earnedPoints, max_points: totalPoints, percent: pct, correct_count: totalCorrect, total_questions: totalQ, grade: grade, grade_text: gradeText });
   if(scoreRecord){
-    const answerRecords = review.map(r => ({
-      score_id: scoreRecord.id,
-      part_id: r.part,
-      question_num: r.num,
-      user_answer: r.userAns,
-      correct_answer: r.answer,
-      is_correct: r.correct,
-      points: r.earned,
-      max_points: r.points
-    }));
-    if(answerRecords.length > 0){
-      await apiPost('answers', answerRecords);
-    }
+    const answerRecords = review.map(r => ({ score_id: scoreRecord.id, part_id: r.part, question_num: r.num, user_answer: r.userAns, correct_answer: r.answer, is_correct: r.correct, points: r.earned, max_points: r.points }));
+    if(answerRecords.length > 0) await apiPost('answers', answerRecords);
   }
-
   if(!currentUser.scores) currentUser.scores = {};
-  currentUser.scores[currentExamId] = {
-    correct: totalCorrect, total: totalQ,
-    points: earnedPoints, maxPoints: totalPoints,
-    percent: pct, grade: grade, gradeText: gradeText,
-    date: Date.now(), breakdown: breakdown, review: review
-  };
+  currentUser.scores[currentExamId] = { correct: totalCorrect, total: totalQ, points: earnedPoints, maxPoints: totalPoints, percent: pct, grade: grade, gradeText: gradeText, date: Date.now(), breakdown: breakdown, review: review };
   saveSession(currentUser);
-
   let emoji, msg;
   if(pct >= 90){ emoji = '🏆'; msg = 'Mükəmməl nəticə!'; }
   else if(pct >= 75){ emoji = '🎉'; msg = 'Əla iş!'; }
   else if(pct >= 60){ emoji = '💪'; msg = 'Yaxşı nəticə!'; }
   else if(pct >= 40){ emoji = '📚'; msg = 'Orta səviyyə.'; }
   else { emoji = '💪'; msg = 'Daha çox çalışın!'; }
-
   document.getElementById('rEmoji').textContent = emoji;
   document.getElementById('rTitle').textContent = 'İmtahan Tamamlandı!';
   document.getElementById('rScore').textContent = `${earnedPoints}`;
   document.getElementById('rTotal').textContent = `${totalPoints} bal (${pct}%)`;
   document.getElementById('rMsg').textContent = `${msg} Qiymət: ${grade} (${gradeText})`;
-
   let bhtml = '';
   breakdown.forEach(b => { bhtml += `<div class="breakdown-item"><div class="b-label">${b.label}</div><div class="b-score"><span>${b.points}</span>/${b.maxPoints}</div></div>`; });
   document.getElementById('rBreakdown').innerHTML = bhtml;
-
   let rhtml = '';
   exam.parts.forEach(pid => {
     const m = MODULES[pid];
@@ -894,33 +775,25 @@ async function showCarnet(){
   document.getElementById('examPage').classList.add('hidden');
   document.getElementById('carnetPage').classList.remove('hidden');
   hideExamNavButtons();
-  
   let examId = currentExamId;
   if(!examId){
     const scores = await dbQuery('scores', { user_id: currentUser.id });
     if(scores.length > 0) examId = scores[scores.length - 1].exam_id;
   }
-  
   if(!examId){ alert('Nəticə tapılmadı!'); backToExams(); return; }
   currentExamId = examId;
-  
   const scores = await dbQuery('scores', { user_id: currentUser.id, exam_id: examId });
   if(scores.length === 0){ alert('Nəticə tapılmadı!'); backToExams(); return; }
   const score = scores[0];
-  
   const answers = await dbQuery('answers', { score_id: score.id });
-  
   const exam = EXAMS[examId];
   const date = new Date(score.created_at).toLocaleString('az-AZ');
-  
   let html = `<div class="carnet-card"><div class="carnet-header"><div class="school">CAMBRIDGE FCE PLATFORM</div><h1>📜 NƏTİCƏ VƏRƏQİ</h1><div style="font-size:14px;color:#6b7280;margin-top:6px">${exam.title}</div></div><div class="carnet-student"><div><strong>Ad Soyad:</strong> ${currentUser.name}</div><div><strong>Email:</strong> ${currentUser.email}</div><div><strong>Tarix:</strong> ${date}</div></div><div class="carnet-total"><div class="total-label">Nəticə</div><div class="grade-badge grade-${score.grade}" style="font-size:24px">${score.total_points}/${score.max_points} (${score.percent}%)</div></div><table class="carnet-table"><thead><tr><th>Part</th><th>Sual</th><th>Cavab</th><th>Düzgün</th><th>Bal</th></tr></thead><tbody>`;
-  
   answers.forEach(a => {
     const m = MODULES[a.part_id];
     const rowClass = a.is_correct ? 'correct-row' : 'incorrect-row';
     html += `<tr class="${rowClass}"><td>Part ${m.moduleNum}</td><td>${a.question_num}</td><td>${a.user_answer || '—'}</td><td>${a.correct_answer}</td><td><strong>${a.points}/${a.max_points}</strong></td></tr>`;
   });
-  
   html += `</tbody></table></div><div class="carnet-actions"><button class="btn-restart" onclick="backToExams()" onkeypress="if(event.key==='Enter')backToExams()">🏠 İmtahanlara Qayıt</button><button class="btn-carnet" onclick="window.print()" onkeypress="if(event.key==='Enter')window.print()">🖨️ Çap et</button></div>`;
   document.getElementById('carnetPage').innerHTML = html;
 }
@@ -997,7 +870,7 @@ async function handlePDFUpload(event){
       const pageText = textContent.items.map(item => item.str).join(' ');
       fullText += pageText + '\n';
     }
-    statusEl.textContent = 'PDF uğurla oxundu. İmtahan strukturu yaradılır...';
+    statusEl.textContent = 'PDF uğurla oxundu.';
     parsePDFAndCreateExam(fullText);
   } catch(err){
     console.error(err);
@@ -1029,9 +902,7 @@ async function deleteUser(email){
   if(email === 'admin@fce.com'){ alert('Admin silinə bilməz!'); return; }
   if(!confirm('Bu istifadəçini silmək istədiyinizə əminsiniz?')) return;
   const users = await dbQuery('users', { email: email });
-  if(users.length > 0){
-    await dbDelete('users', users[0].id);
-  }
+  if(users.length > 0) await dbDelete('users', users[0].id);
   renderAdminUsers();
 }
 
@@ -1109,11 +980,8 @@ async function savePointsForPart(examId, pid){
     const num = parseInt(inp.dataset.num);
     const val = parseFloat(inp.value) || 0;
     const existing = await dbQuery('exam_points', { exam_id: examId, part_id: pid, question_num: num });
-    if(existing.length > 0){
-      await dbUpdate('exam_points', existing[0].id, { points: val });
-    } else {
-      await dbInsert('exam_points', { exam_id: examId, part_id: pid, question_num: num, points: val });
-    }
+    if(existing.length > 0) await dbUpdate('exam_points', existing[0].id, { points: val });
+    else await dbInsert('exam_points', { exam_id: examId, part_id: pid, question_num: num, points: val });
   }
   alert('✅ Ballar uğurla yadda saxlanıldı!');
 }
@@ -1162,7 +1030,6 @@ async function viewCarnetFromAdmin(email, examId){
   const isMarker = currentUser && currentUser.role === 'marker';
   const isAdmin = currentUser && currentUser.role === 'admin';
   const canEdit = isMarker || isAdmin;
-  
   let html = `<div style="padding:20px">
     <div style="background:#fff;border-radius:16px;padding:30px;box-shadow:0 4px 20px rgba(0,0,0,0.1)">
       <div style="text-align:center;border-bottom:3px double #1a1a2e;padding-bottom:20px;margin-bottom:24px">
@@ -1192,7 +1059,6 @@ async function viewCarnetFromAdmin(email, examId){
           </tr>
         </thead>
         <tbody>`;
-  
   answers.forEach((a, idx) => {
     const m = MODULES[a.part_id];
     html += `<tr style="background:${a.is_correct ? '#dcfce7' : '#fee2e2'}" id="reviewRow_${idx}">
@@ -1210,7 +1076,6 @@ async function viewCarnetFromAdmin(email, examId){
     html += `</td></tr>`;
   });
   html += `</tbody></table>`;
-  
   if(canEdit){
     html += `<div style="margin-top:20px;text-align:center">
       <button onclick="window.opener.recalculateAndSaveScore('${email}','${examId}','${score.id}')" style="padding:14px 32px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">💾 Balları Yenilə və Yadda Saxla</button>
@@ -1228,13 +1093,10 @@ async function updateReviewScore(input){
   const answerId = input.dataset.answerId;
   const newScore = parseFloat(input.value) || 0;
   const maxPt = parseFloat(input.max) || 1;
-  
   if(newScore > maxPt){ alert(`Maksimum bal ${maxPt}-dir!`); input.value = 0; return; }
   if(newScore < 0){ alert(`Bal mənfi ola bilməz!`); input.value = 0; return; }
-  
   const isCorrect = (newScore === maxPt);
   await dbUpdate('answers', answerId, { points: newScore, is_correct: isCorrect });
-  
   const row = input.closest('tr');
   if(row){
     row.style.background = isCorrect ? '#dcfce7' : '#fee2e2';
@@ -1258,19 +1120,12 @@ async function recalculateAndSaveScore(email, examId, scoreId){
   else if(pct >= 60){ grade = 3; gradeText = 'Orta'; }
   else if(pct >= 40){ grade = 2; gradeText = 'Qənaətbəxş'; }
   else { grade = 1; gradeText = 'Qeyri-qənaətbəxş'; }
-  
   await dbUpdate('scores', scoreId, {
-    total_points: totalEarned,
-    max_points: totalMax,
-    percent: pct,
-    correct_count: correctCount,
-    grade: grade,
-    grade_text: gradeText,
-    marker_edited: true,
-    marker_name: currentUser?.name || 'Marker',
+    total_points: totalEarned, max_points: totalMax, percent: pct,
+    correct_count: correctCount, grade: grade, grade_text: gradeText,
+    marker_edited: true, marker_name: currentUser?.name || 'Marker',
     marker_edited_at: new Date().toISOString()
   });
-  
   try {
     const openerDoc = window.opener?.document;
     if(openerDoc){
@@ -1287,7 +1142,6 @@ async function recalculateAndSaveScore(email, examId, scoreId){
       if(openerDoc.getElementById('markerStudentList')){ openerDoc.renderMarkerStudentList(); openerDoc.renderMarkerStats(); }
     }
   } catch(e){ console.error('UI yeniləmə xətası:', e); }
-  
   alert(`✅ Yaddaşa verildi!\n\nYeni bal: ${totalEarned}/${totalMax} (${pct}%)\nQiymət: ${grade} (${gradeText})`);
 }
 
@@ -1306,9 +1160,7 @@ async function makeMarker(){
   if(users.length === 0){ alert('İstifadəçi tapılmadı'); return; }
   await dbUpdate('users', users[0].id, { role: 'marker' });
   alert(`✅ ${users[0].name} marker təyin olundu!`);
-  renderMarkerUserSelect();
-  renderMarkersList();
-  renderAdminUsers();
+  renderMarkerUserSelect(); renderMarkersList(); renderAdminUsers();
 }
 
 async function renderMarkersList(){
@@ -1328,12 +1180,8 @@ async function removeMarker(email){
   const users = await dbQuery('users', { email: email });
   if(users.length === 0) return;
   await dbUpdate('users', users[0].id, { role: 'student' });
-  renderMarkersList();
-  renderMarkerUserSelect();
-  renderAdminUsers();
+  renderMarkersList(); renderMarkerUserSelect(); renderAdminUsers();
 }
 
 // ==================== INIT ====================
-initDB().then(() => {
-  if(currentUser) enterApp();
-});
+initDB().then(() => { if(currentUser) enterApp(); });
