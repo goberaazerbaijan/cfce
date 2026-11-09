@@ -39,16 +39,32 @@
   <div class="top-nav">
     <div class="logo">Cambridge <span>FCE</span> — Platform</div>
     <div class="exam-nav-buttons" id="examNavButtons"></div>
-    <div class="user-info"><span id="userDisplay" class="user-email"></span><button class="logout-btn" onclick="doLogout()">Çıxış</button></div>
+    <div class="user-info">
+      <span id="userDisplay" class="user-email"></span>
+      <button class="logout-btn" onclick="doLogout()">Çıxış</button>
+    </div>
   </div>
 
-  <!-- İMTAHAN SİYAHISI -->
-  <div id="examListPage" class="exam-list-page hidden">
-    <h2>İmtahanlar</h2>
-    <div class="sub">Mövcud imtahanlardan birini seçin</div>
-    <div class="exam-grid" id="examGrid"></div>
+  <!-- ŞAGİRD KABİNETİ (YENİ) -->
+  <div id="studentDashboard" class="student-dashboard hidden">
+    <div class="dashboard-header">
+      <h2>👋 Şəxsi Kabinet</h2>
+      <p>Xoş gəldiniz, <strong id="studentName"></strong></p>
+    </div>
+    <div class="dashboard-tabs">
+      <button class="dash-tab active" onclick="switchDashTab('exams')">📚 İmtahanlar</button>
+      <button class="dash-tab" onclick="switchDashTab('results')">📊 Nəticələrim</button>
+    </div>
+    <div id="dashExams" class="dash-section active">
+      <h3>Mövcud İmtahanlar</h3>
+      <div class="exam-grid" id="examGrid"></div>
+    </div>
+    <div id="dashResults" class="dash-section">
+      <h3>Mənim Nəticələrim</h3>
+      <div id="myResultsList"></div>
+    </div>
   </div>
-  
+
   <!-- İMTAHAN SƏHİFƏSİ -->
   <div id="examPage" class="hidden">
     <div class="module-bar">
@@ -110,30 +126,33 @@
     <div id="adminExams" class="admin-section">
       <div class="admin-card">
         <h3>İmtahan siyahısı</h3>
-        <table class="exams-table">
-          <thead><tr><th>ID</th><th>Ad</th><th>Partlar</th><th>Ümumi sual</th></tr></thead>
-          <tbody id="examsTableBody"></tbody>
-        </table>
+        <div id="examsList"></div>
       </div>
     </div>
     
     <div id="adminUpload" class="admin-section">
       <div class="admin-card">
-        <h3>📝 İmtahan Yüklə (Partlar üzrə)</h3>
+        <h3>📝 Yeni İmtahan Yarat</h3>
         <div style="margin-bottom:16px">
-          <label style="font-size:13px;font-weight:600;color:#374151">Part seçin:</label><br>
-          <select class="exam-select" id="uploadPartSelect" onchange="renderUploadForm()" style="margin-bottom:12px">
-            <option value="part1">Part 1 — Multiple Choice Cloze</option>
-            <option value="part2">Part 2 — Open Cloze</option>
-            <option value="part3">Part 3 — Word Formation</option>
-            <option value="part4">Part 4 — Key Word Transformation</option>
-            <option value="part5">Part 5 — Reading</option>
-            <option value="part6">Part 6 — Gapped Text</option>
-            <option value="part7">Part 7 — Multiple Matching</option>
+          <label style="font-size:13px;font-weight:600;color:#374151">İmtahan adı:</label><br>
+          <input type="text" id="newExamTitle" placeholder="Məs: FCE Practice Test 2" style="width:100%;padding:10px;border:2px solid #e5e7eb;border-radius:8px;margin-top:8px">
+        </div>
+        <div style="margin-bottom:16px">
+          <label style="font-size:13px;font-weight:600;color:#374151">Açıqlama:</label><br>
+          <input type="text" id="newExamDesc" placeholder="İmtahan haqqında qısa məlumat" style="width:100%;padding:10px;border:2px solid #e5e7eb;border-radius:8px;margin-top:8px">
+        </div>
+        <div style="margin-bottom:16px">
+          <label style="font-size:13px;font-weight:600;color:#374151">İkon:</label><br>
+          <select id="newExamIcon" style="padding:10px;border:2px solid #e5e7eb;border-radius:8px;margin-top:8px">
+            <option value="📚">📚 Kitab</option>
+            <option value="📝">📝 Yazı</option>
+            <option value="🎯">🎯 Hədəf</option>
+            <option value="🏆">🏆 Kubok</option>
+            <option value="📖">📖 Oxu</option>
           </select>
         </div>
-        <div id="uploadForm"></div>
-        <div id="uploadStatus" style="font-size:13px;color:#666;margin-top:10px"></div>
+        <button onclick="createNewExam()" style="padding:12px 24px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer">✅ İmtahan Yarat</button>
+        <div id="uploadStatus" style="margin-top:12px;font-size:13px;color:#666"></div>
       </div>
     </div>
     
