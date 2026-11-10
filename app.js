@@ -1006,6 +1006,121 @@ async function showCarnet(){
   console.log('🔍 score:', score);
   console.log('🔍 score.id:', score.id);
   
+  // ✅ YOXLA: score.id mövcuddurmu?
+  if(!score.id || score.id === '' || score.id === '...'){
+    console.error('❌ score.id yanlışdır:', score.id);
+    alert('Nəticə ID tapılmadı! İmtahanı yenidən başlayın.');
+    backToExams();
+    return;
+  }
+  
+  // ✅ Cavabları birbaşa API-dən al
+  let answers = [];
+  try {
+    const url = new URL(`${API_URL}/answers/filter`);
+    url.searchParams.append('score_id', score.id);
+    console.log('🔍 URL:', url.toString());
+    const res = await fetch(url);
+    if(res.ok) {
+      answers = await res.json();
+      console.log('✅ Cavablar alındı:', answers.length, 'sual');
+    } else {
+      console.error('❌ Cavablar alınamadı:', res.status);
+    }
+  } catch(error) {
+    console.error('❌ Cavablar alınamadı:', error);
+  }
+  
+  const exam = EXAMS[examId];
+  const date = new Date(score.created_at).toLocaleString('az-AZ');
+  const totalPts = score.total_points || 0;
+  const maxPts = score.max_points || 0;
+  const pct = score.percent || 0;
+  const grade = score.grade || 1;
+  
+  let html = `<div class="carnet-card">
+    <div class="carnet-header">
+      <div class="school">CAMBRIDGE FCE PLATFORM</div>
+      <h1>📜 NƏTİCƏ VƏRƏQİ</h1>
+      <div style="font-size:14px;color:#6b7280;margin-top:6px">${exam.title}</div>
+    </div>
+    <div class="carnet-student">
+      <div><strong>Ad Soyad:</strong> ${currentUser.name}</div>
+      <div><strong>Email:</strong> ${currentUser.email}</div>
+      <div><strong>Tarix:</strong> ${date}</div>
+    </div>
+    <div class="carnet-total">
+      <div class="total-label">Nəticə</div>
+      <div class="grade-badge grade-${grade}" style="font-size:24px">${totalPts}/${maxPts} (${pct}%)</div>
+    </div>
+    <table class="carnet-table">
+      <thead>
+        <tr>
+          <th>Part</th>
+          <th>Sual</th>
+          <th>Cavab</th>
+          <th>Düzgün</th>
+          <th>Status</th>
+          <th>Bal</th>
+        </tr>
+      </thead>
+      <tbody>`;
+  
+  if(answers.length === 0){
+    html += `<tr><td colspan="6" style="text-align:center;padding:20px;color:#9ca3af">⚠️ Cavablar tapılmadı. İmtahanı yenidən başlayın.</td></tr>`;
+  } else {
+    answers.forEach((a, idx) => {
+      const m = MODULES[a.part_id];
+      if(!m) return;
+      const rowClass = a.is_correct ? 'correct-row' : 'incorrect-row';
+      let answerCell = a.user_answer || '—';
+      if(a.user_image){
+        answerCell = `<img src="${a.user_image}" style="max-height:50px;border:1px solid #e5e7eb;border-radius:4px" />`;
+      }
+      html += `<tr class="${rowClass}">
+        <td>Part ${m.moduleNum}</td>
+        <td>${a.question_num}</td>
+        <td>${answerCell}</td>
+        <td>${a.correct_answer || '—'}</td>
+        <td>${a.is_correct ? '✅ Düzgün' : '❌ Səhv'}</td>
+        <td><strong>${a.points || 0}/${a.max_points || 1}</strong></td>
+      </tr>`;
+    });
+  }
+  
+  html += `</tbody></table>
+    <div class="carnet-actions">
+      <button class="btn-restart" onclick="backToExams()">🏠 İmtahanlara Qayıt</button>
+      <button class="btn-carnet" onclick="window.print()">🖨️ Çap et</button>
+    </div>
+  </div>`;
+  
+  document.getElementById('carnetPage').innerHTML = html;
+}
+  console.log('🔍 examId:', examId);
+  
+  if(!examId){ 
+    console.log('❌ examId tapılmadı!');
+    alert('Nəticə tapılmadı!'); 
+    backToExams(); 
+    return; 
+  }
+  currentExamId = examId;
+  
+  console.log('🔍 scores alınır...');
+  const scores = await dbQuery('scores', { user_id: currentUser.id, exam_id: examId });
+  console.log('🔍 scores:', scores);
+  
+  if(scores.length === 0){ 
+    console.log('❌ score tapılmadı!');
+    alert('Nəticə tapılmadı!'); 
+    backToExams(); 
+    return; 
+  }
+  const score = scores[0];
+  console.log('🔍 score:', score);
+  console.log('🔍 score.id:', score.id);
+  
   // ✅ Cavabları birbaşa API-dən al
   let answers = [];
   try {
