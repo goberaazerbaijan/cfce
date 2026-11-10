@@ -385,7 +385,7 @@ function showCarnetFromCurrent(){
   showCarnet();
 }
 
-// ==================== EXAM LIST ====================
+// ==================== EXAM LIST (1 İMTAHAN = 1 DƏFƏ) ====================
 async function showExamList(){
   document.getElementById('examPage').classList.add('hidden');
   document.getElementById('carnetPage').classList.add('hidden');
@@ -1124,51 +1124,16 @@ async function updateReviewScoreInline(input){
   }
 }
 
-// ✅ YENİ: Marker nəticəni yadda saxlasın + Yeni pəncərədə UI yenilənsin
+// ✅ TAM DÜZƏLDİLMİŞ: Marker nəticəni yadda saxlasın + Yeni pəncərədə UI yenilənsin
 async function recalculateAndSaveScoreInline(email, examId, scoreId){
-  const answers = await dbQuery('answers', { score_id: scoreId });
-  let totalEarned = 0, totalMax = 0, correctCount = 0;
-  answers.forEach(a => {
-    totalMax += (a.max_points || 1);
-    totalEarned += (a.points || 0);
-    if(a.is_correct) correctCount++;
-  });
-  const pct = totalMax > 0 ? Math.round((totalEarned / totalMax) * 100) : 0;
-  let grade, gradeText;
-  if(pct >= 90){ grade = 5; gradeText = 'Əla'; }
-  else if(pct >= 75){ grade = 4; gradeText = 'Yaxşı'; }
-  else if(pct >= 60){ grade = 3; gradeText = 'Orta'; }
-  else if(pct >= 40){ grade = 2; gradeText = 'Qənaətbəxş'; }
-  else { grade = 1; gradeText = 'Qeyri-qənaətbəxş'; }
+  if(!confirm('Balı yeniləmək istədiyinizə əminsiniz?')) return;
   
-  await dbUpdate('scores', scoreId, {
-    total_points: totalEarned,
-    max_points: totalMax,
-    percent: pct,
-    correct_count: correctCount,
-    grade: grade,
-    grade_text: gradeText,
-    marker_edited: true,
-    marker_name: currentUser?.name || 'Marker',
-    marker_edited_at: new Date().toISOString()
-  });
-  
-  // ✅ YENİ PƏNCƏRƏDƏKİ UI-I YENİLƏ
-  if(currentCarnetWindow && !currentCarnetWindow.closed){
-    const totalDisplay = currentCarnetWindow.document.getElementById('carnetTotalDisplay');
-    if(totalDisplay) totalDisplay.textContent = `${totalEarned}/${totalMax} (${pct}%)`;
-    
-    const gradeBadge = currentCarnetWindow.document.getElementById('carnetGradeBadge');
-    if(gradeBadge){
-      const colors = {5:'#16a34a', 4:'#2563eb', 3:'#fbbf24', 2:'#f97316', 1:'#dc2626'};
-      gradeBadge.style.background = colors[grade] || '#dc2626';
-      gradeBadge.style.color = grade === 3 ? '#1a1a2e' : '#fff';
-      gradeBadge.textContent = `${totalEarned}/${totalMax} (${pct}%)`;
+  try {
+    const answers = await dbQuery('answers', { score_id: scoreId });
+    if(!answers || answers.length === 0){
+      alert('Cavablar tapılmadı!');
+      return;
     }
-  }
-  
-  alert(`✅ Yadda saxlanıldı!\n\nYeni bal: ${totalEarned}/${totalMax} (${pct}%)\nQiymət: ${grade} (${gradeText})`);
-}
     
     let totalEarned = 0, totalMax = 0, correctCount = 0;
     answers.forEach(a => {
@@ -1512,7 +1477,6 @@ async function viewCarnetFromAdmin(email, examId){
       if(a.user_image) answerDisplay = `<img src="${a.user_image}" style="max-height:50px;border:1px solid #e5e7eb;border-radius:4px" />`;
       html += `<tr style="background:${a.is_correct ? '#dcfce7' : '#fee2e2'}" id="reviewRow_${idx}"><td style="padding:12px;border-bottom:1px solid #e5e7eb">Part ${m.moduleNum}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.question_num}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${answerDisplay}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.correct_answer || '—'}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.is_correct ? '✅ Düzgün' : '❌ Səhv'}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">`;
       if(canEdit){
-        // ✅ DÜZƏLİŞ: window.opener ilə çağırılır
         html += `<input type="number" class="marker-score-input" data-idx="${idx}" data-answer-id="${a.id}" value="${a.points || 0}" min="0" max="${a.max_points || 1}" step="0.5" style="width:70px;padding:6px;border:2px solid #e5e7eb;border-radius:6px;text-align:center;font-weight:700" onchange="window.opener.updateReviewScoreInline(this)"><span style="font-size:11px;color:#666">/${a.max_points || 1}</span>`;
       } else {
         html += `<strong>${a.points || 0}/${a.max_points || 1}</strong>`;
@@ -1523,7 +1487,6 @@ async function viewCarnetFromAdmin(email, examId){
   
   html += `</tbody></table>`;
   if(canEdit && answers.length > 0){
-    // ✅ DÜZƏLİŞ: window.opener ilə çağırılır
     html += `<div style="margin-top:20px;text-align:center"><button onclick="window.opener.recalculateAndSaveScoreInline('${email}','${examId}','${score.id}')" style="padding:14px 32px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">💾 Balları Yenilə və Yadda Saxla</button><p style="font-size:12px;color:#666;margin-top:8px">⚠️ Diqqət: Bu əməliyyat şagirdin ümumi balını və qiymətini yeniləyəcək.</p></div>`;
   }
   html += `</div></div>`;
