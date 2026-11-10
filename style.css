@@ -1,9 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&family=Inter:wght@400;500;600;700;800&display=swap');
 
+/* ✅ DÜZƏLDİ: * selector əlavə edildi */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body { font-family: 'Inter', sans-serif; background: #f0f0eb; color: #222; min-height: 100vh; }
-
 .hidden { display: none !important; }
 
 /* ==================== AUTH ==================== */
@@ -205,6 +205,7 @@ body { font-family: 'Inter', sans-serif; background: #f0f0eb; color: #222; min-h
 .final-review-item .fr-num { font-weight: 800; color: #1a1a2e; min-width: 30px; }
 .final-review-item .fr-icon { font-size: 15px; }
 .final-review-item .fr-user { font-weight: 700; font-size: 13px; }
+/* ✅ DÜZƏLDİ: .fr-user.wrong (boşluqsuz) */
 .final-review-item .fr-user.wrong { text-decoration: line-through; color: #dc2626; }
 .final-review-item .fr-correct { font-weight: 700; font-size: 13px; color: #16a34a; }
 .btn-restart { padding: 14px 36px; background: #1a1a2e; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; margin: 6px; }
