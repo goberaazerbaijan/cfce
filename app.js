@@ -407,9 +407,17 @@ function renderExamNavButtons(){
     const isActive = pid === currentModuleId;
     html += `<button class="part-nav-btn ${isActive ? 'active' : ''}" onclick="goToPart('${pid}')">Part ${m.moduleNum}</button>`;
   });
+  // ✅ YENİ: İmtahanı bitir düyməsi
+  html += `<button class="result-nav-btn btn-finish-exam" onclick="finishExam()">🏁 İmtahanı bitir</button>`;
   html += `<button class="result-nav-btn" onclick="showCarnetFromCurrent()">📜 Nəticəyə bax</button>`;
   container.innerHTML = html;
   container.classList.add('show');
+}
+
+// ✅ YENİ: finishExam funksiyası
+function finishExam(){
+  if(!confirm('İmtahanı bitirmək istədiyinizə əminsiniz? Cavablarınız yadda saxlanılacaq.')) return;
+  showFinalResults();
 }
 
 function hideExamNavButtons(){
