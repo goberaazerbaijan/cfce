@@ -1124,16 +1124,51 @@ async function updateReviewScoreInline(input){
   }
 }
 
-// ✅ TAM DÜZƏLDİLMİŞ: Marker nəticəni yadda saxlasın + UI yenilənsin
+// ✅ YENİ: Marker nəticəni yadda saxlasın + Yeni pəncərədə UI yenilənsin
 async function recalculateAndSaveScoreInline(email, examId, scoreId){
-  if(!confirm('Balı yeniləmək istədiyinizə əminsiniz?')) return;
+  const answers = await dbQuery('answers', { score_id: scoreId });
+  let totalEarned = 0, totalMax = 0, correctCount = 0;
+  answers.forEach(a => {
+    totalMax += (a.max_points || 1);
+    totalEarned += (a.points || 0);
+    if(a.is_correct) correctCount++;
+  });
+  const pct = totalMax > 0 ? Math.round((totalEarned / totalMax) * 100) : 0;
+  let grade, gradeText;
+  if(pct >= 90){ grade = 5; gradeText = 'Əla'; }
+  else if(pct >= 75){ grade = 4; gradeText = 'Yaxşı'; }
+  else if(pct >= 60){ grade = 3; gradeText = 'Orta'; }
+  else if(pct >= 40){ grade = 2; gradeText = 'Qənaətbəxş'; }
+  else { grade = 1; gradeText = 'Qeyri-qənaətbəxş'; }
   
-  try {
-    const answers = await dbQuery('answers', { score_id: scoreId });
-    if(!answers || answers.length === 0){
-      alert('Cavablar tapılmadı!');
-      return;
+  await dbUpdate('scores', scoreId, {
+    total_points: totalEarned,
+    max_points: totalMax,
+    percent: pct,
+    correct_count: correctCount,
+    grade: grade,
+    grade_text: gradeText,
+    marker_edited: true,
+    marker_name: currentUser?.name || 'Marker',
+    marker_edited_at: new Date().toISOString()
+  });
+  
+  // ✅ YENİ PƏNCƏRƏDƏKİ UI-I YENİLƏ
+  if(currentCarnetWindow && !currentCarnetWindow.closed){
+    const totalDisplay = currentCarnetWindow.document.getElementById('carnetTotalDisplay');
+    if(totalDisplay) totalDisplay.textContent = `${totalEarned}/${totalMax} (${pct}%)`;
+    
+    const gradeBadge = currentCarnetWindow.document.getElementById('carnetGradeBadge');
+    if(gradeBadge){
+      const colors = {5:'#16a34a', 4:'#2563eb', 3:'#fbbf24', 2:'#f97316', 1:'#dc2626'};
+      gradeBadge.style.background = colors[grade] || '#dc2626';
+      gradeBadge.style.color = grade === 3 ? '#1a1a2e' : '#fff';
+      gradeBadge.textContent = `${totalEarned}/${totalMax} (${pct}%)`;
     }
+  }
+  
+  alert(`✅ Yadda saxlanıldı!\n\nYeni bal: ${totalEarned}/${totalMax} (${pct}%)\nQiymət: ${grade} (${gradeText})`);
+}
     
     let totalEarned = 0, totalMax = 0, correctCount = 0;
     answers.forEach(a => {
