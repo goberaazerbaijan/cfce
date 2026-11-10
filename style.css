@@ -48,7 +48,7 @@ body { font-family: 'Inter', sans-serif; background: #f0f0eb; color: #222; min-h
 .exam-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
 .exam-card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); cursor: pointer; transition: all 0.2s; border: 2px solid transparent; }
 .exam-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); border-color: #1a1a2e; }
-.exam-card-taken { border: 2px solid #2563eb !important; cursor: pointer !important; }
+.exam-card-taken { border: 2px solid #2563eb !important; }
 .exam-card-taken:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(37,99,235,0.2); border-color: #1d4ed8 !important; }
 .exam-card .exam-icon { font-size: 36px; margin-bottom: 12px; }
 .exam-card h3 { font-family: 'Merriweather', serif; font-size: 18px; color: #1a1a2e; margin-bottom: 6px; }
