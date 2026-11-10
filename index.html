@@ -9,13 +9,11 @@
 </head>
 <body>
 
-<!-- GİRİŞ SƏHİFƏSİ -->
 <div id="authPage" class="auth-page">
   <div class="auth-card">
     <h1>Cambridge <span style="color:#fbbf24">FCE</span></h1>
     <div class="subtitle">Platformasına xoş gəlmisiniz</div>
     <div class="auth-tabs">
-      <!-- ✅ PROBLEM 3 HƏLLİ: event parametri əlavə edildi -->
       <button class="auth-tab active" onclick="switchAuthTab('login', event)">Giriş</button>
       <button class="auth-tab" onclick="switchAuthTab('register', event)">Qeydiyyat</button>
     </div>
@@ -35,7 +33,6 @@
   </div>
 </div>
 
-<!-- ƏSAS TƏTBİQ -->
 <div id="mainApp" class="hidden">
   <div class="top-nav">
     <div class="logo">Cambridge <span>FCE</span> — Platform</div>
@@ -46,14 +43,12 @@
     </div>
   </div>
 
-  <!-- İMTAHAN SİYAHISI -->
   <div id="examListPage" class="exam-list-page hidden">
     <h2>İmtahanlar</h2>
     <div class="sub">Mövcud imtahanlardan birini seçin</div>
     <div class="exam-grid" id="examGrid"></div>
   </div>
 
-  <!-- İMTAHAN SƏHİFƏSİ -->
   <div id="examPage" class="hidden">
     <div class="module-bar">
       <div class="module-badge">
@@ -64,19 +59,15 @@
         </div>
       </div>
       <div class="module-progress">
-        <div class="module-progress-bar">
-          <div class="module-progress-fill" id="progressFill" style="width:0%"></div>
-        </div>
+        <div class="module-progress-bar"><div class="module-progress-fill" id="progressFill" style="width:0%"></div></div>
         <div class="module-progress-text" id="progressText">0/8</div>
       </div>
     </div>
     <div class="main-layout" id="mainLayout"></div>
   </div>
 
-  <!-- NƏTİCƏ VƏRƏQİ -->
   <div id="carnetPage" class="carnet-page hidden"></div>
 
-  <!-- MARKER KABİNETİ -->
   <div id="markerDashboard" class="marker-dashboard hidden">
     <div class="marker-header">
       <h2>👋 Marker Kabineti</h2>
@@ -89,11 +80,9 @@
     </div>
   </div>
 
-  <!-- ADMİN PANEL -->
   <div id="adminPage" class="admin-page hidden">
     <h2>🛠️ Admin Panel</h2>
     <div class="admin-tabs">
-      <!-- ✅ PROBLEM 3 HƏLLİ: event parametri əlavə edildi -->
       <button class="admin-tab active" onclick="switchAdminTab('users', event)">👥 İstifadəçilər</button>
       <button class="admin-tab" onclick="switchAdminTab('exams', event)">📋 İmtahanlar</button>
       <button class="admin-tab" onclick="switchAdminTab('upload', event)">📤 İmtahan Yüklə</button>
@@ -124,22 +113,9 @@
 
     <div id="adminUpload" class="admin-section">
       <div class="admin-card">
-        <h3>📝 İmtahan Yüklə (Partlar üzrə)</h3>
-        <div style="margin-bottom:16px">
-          <label style="font-size:13px;font-weight:600;color:#374151">Part seçin:</label><br>
-          <!-- ✅ PROBLEM 1 HƏLLİ: uploadPartSelect elementi mütləq mövcuddur -->
-          <select class="exam-select" id="uploadPartSelect" onchange="renderUploadForm()" style="margin-bottom:12px">
-            <option value="part1">Part 1 — Multiple Choice Cloze</option>
-            <option value="part2">Part 2 — Open Cloze</option>
-            <option value="part3">Part 3 — Word Formation</option>
-            <option value="part4">Part 4 — Key Word Transformation</option>
-            <option value="part5">Part 5 — Reading</option>
-            <option value="part6">Part 6 — Gapped Text</option>
-            <option value="part7">Part 7 — Multiple Matching</option>
-          </select>
-        </div>
-        <div id="uploadForm"></div>
-        <div id="uploadStatus" style="font-size:13px;color:#666;margin-top:10px"></div>
+        <h3>📝 İmtahan Yüklə (PDF)</h3>
+        <input type="file" id="pdfUpload" accept=".pdf">
+        <div id="uploadStatus" style="font-size:13px;color:#666;margin-top:10px">PDF faylını seçin və yükləyin.</div>
       </div>
     </div>
 
