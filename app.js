@@ -966,6 +966,10 @@ async function showFinalResults(){
 
 // ✅ TAM DÜZƏLDİLMİŞ: Nəticə vərəqi — cavablar düzgün göstərilir
 async function showCarnet(){
+  console.log('🔍 showCarnet çağırıldı');
+  console.log('🔍 currentExamId:', currentExamId);
+  console.log('🔍 currentUser:', currentUser);
+  
   document.getElementById('resultsScreen').classList.remove('show');
   document.getElementById('examPage').classList.add('hidden');
   document.getElementById('carnetPage').classList.remove('hidden');
@@ -973,22 +977,41 @@ async function showCarnet(){
   
   let examId = currentExamId;
   if(!examId){
+    console.log('🔍 examId boşdur, scores alınır...');
     const scores = await dbQuery('scores', { user_id: currentUser.id });
+    console.log('🔍 scores:', scores);
     if(scores.length > 0) examId = scores[scores.length - 1].exam_id;
   }
-  if(!examId){ alert('Nəticə tapılmadı!'); backToExams(); return; }
+  console.log('🔍 examId:', examId);
+  
+  if(!examId){ 
+    console.log('❌ examId tapılmadı!');
+    alert('Nəticə tapılmadı!'); 
+    backToExams(); 
+    return; 
+  }
   currentExamId = examId;
   
+  console.log('🔍 scores alınır...');
   const scores = await dbQuery('scores', { user_id: currentUser.id, exam_id: examId });
-  if(scores.length === 0){ alert('Nəticə tapılmadı!'); backToExams(); return; }
+  console.log('🔍 scores:', scores);
+  
+  if(scores.length === 0){ 
+    console.log('❌ score tapılmadı!');
+    alert('Nəticə tapılmadı!'); 
+    backToExams(); 
+    return; 
+  }
   const score = scores[0];
+  console.log('🔍 score:', score);
+  console.log('🔍 score.id:', score.id);
   
-  console.log('🔍 Score ID:', score.id);
-  
+  // ✅ Cavabları birbaşa API-dən al
   let answers = [];
   try {
     const url = new URL(`${API_URL}/answers/filter`);
     url.searchParams.append('score_id', score.id);
+    console.log('🔍 URL:', url.toString());
     const res = await fetch(url);
     if(res.ok) {
       answers = await res.json();
@@ -1006,9 +1029,6 @@ async function showCarnet(){
   const maxPts = score.max_points || 0;
   const pct = score.percent || 0;
   const grade = score.grade || 1;
-  const isMarker = currentUser && currentUser.role === 'marker';
-  const isAdmin = currentUser && currentUser.role === 'admin';
-  const canEdit = isMarker || isAdmin;
   
   let html = `<div class="carnet-card">
     <div class="carnet-header">
@@ -1049,21 +1069,26 @@ async function showCarnet(){
       if(a.user_image){
         answerCell = `<img src="${a.user_image}" style="max-height:50px;border:1px solid #e5e7eb;border-radius:4px" />`;
       }
-      html += `<tr class="${rowClass}" id="reviewRow_${idx}">
+      html += `<tr class="${rowClass}">
         <td>Part ${m.moduleNum}</td>
         <td>${a.question_num}</td>
         <td>${answerCell}</td>
         <td>${a.correct_answer || '—'}</td>
         <td>${a.is_correct ? '✅ Düzgün' : '❌ Səhv'}</td>
-        <td>`;
-      if(canEdit){
-        html += `<input type="number" class="marker-score-input" data-idx="${idx}" data-answer-id="${a.id}" value="${a.points || 0}" min="0" max="${a.max_points || 1}" step="0.5" style="width:70px;padding:6px;border:2px solid #e5e7eb;border-radius:6px;text-align:center;font-weight:700" onchange="updateReviewScoreInline(this)"><span style="font-size:11px;color:#666">/${a.max_points || 1}</span>`;
-      } else {
-        html += `<strong>${a.points || 0}/${a.max_points || 1}</strong>`;
-      }
-      html += `</td></tr>`;
+        <td><strong>${a.points || 0}/${a.max_points || 1}</strong></td>
+      </tr>`;
     });
   }
+  
+  html += `</tbody></table>
+    <div class="carnet-actions">
+      <button class="btn-restart" onclick="backToExams()">🏠 İmtahanlara Qayıt</button>
+      <button class="btn-carnet" onclick="window.print()">🖨️ Çap et</button>
+    </div>
+  </div>`;
+  
+  document.getElementById('carnetPage').innerHTML = html;
+}
   
   html += `</tbody></table>`;
   
