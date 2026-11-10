@@ -21,12 +21,16 @@ async function apiPost(endpoint, body) {
   } catch (error) { console.error(`POST ${endpoint} xətası:`, error); return null; }
 }
 
+// ✅ DÜZƏLDİLDİ: Xəta baş verdikdə throw edir
 async function apiPut(endpoint, id, body) {
   try {
     const res = await fetch(`${API_URL}/${endpoint}/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
     return await res.json();
-  } catch (error) { console.error(`PUT ${endpoint}/${id} xətası:`, error); return null; }
+  } catch (error) { 
+    console.error(`PUT ${endpoint}/${id} xətası:`, error); 
+    throw error; // ✅ Xətanı at
+  }
 }
 
 async function apiDelete(endpoint, id) {
@@ -43,7 +47,17 @@ async function dbQuery(table, filters = {}) {
 }
 
 async function dbInsert(table, record) { return await apiPost(table, record); }
-async function dbUpdate(table, id, update) { return await apiPut(table, id, update); }
+
+// ✅ DÜZƏLDİLDİ: Xəta baş verdikdə null əvəzinə throw edir
+async function dbUpdate(table, id, update) { 
+  try {
+    return await apiPut(table, id, update);
+  } catch (error) {
+    console.error(`❌ dbUpdate xətası: ${table}/${id}`, error);
+    throw error;
+  }
+}
+
 async function dbDelete(table, id) { return await apiDelete(table, id); }
 
 // ==================== DATA (BOŞLUQLAR TƏMİZLƏNDİ) ====================
@@ -1120,7 +1134,7 @@ async function updateReviewScoreInline(input){
     }
   } catch(error) {
     console.error('❌ Bal yenilənə bilmədi:', error);
-    alert('Xəta baş verdi!');
+    alert('Xəta baş verdi! Bal yadda saxlanılmadı.');
   }
 }
 
@@ -1129,12 +1143,14 @@ async function recalculateAndSaveScoreInline(email, examId, scoreId){
   if(!confirm('Balı yeniləmək istədiyinizə əminsiniz?')) return;
   
   try {
+    // 1. Cavabları al
     const answers = await dbQuery('answers', { score_id: scoreId });
     if(!answers || answers.length === 0){
       alert('Cavablar tapılmadı!');
       return;
     }
     
+    // 2. Yeni balı hesabla
     let totalEarned = 0, totalMax = 0, correctCount = 0;
     answers.forEach(a => {
       totalMax += (a.max_points || 1);
@@ -1150,7 +1166,8 @@ async function recalculateAndSaveScoreInline(email, examId, scoreId){
     else if(pct >= 40){ grade = 2; gradeText = 'Qənaətbəxş'; }
     else { grade = 1; gradeText = 'Qeyri-qənaətbəxş'; }
     
-    await dbUpdate('scores', scoreId, {
+    // 3. ✅ SERVERƏ YAZ (xəta baş verdikdə catch blokuna düşəcək)
+    const updateResult = await dbUpdate('scores', scoreId, {
       total_points: totalEarned,
       max_points: totalMax,
       percent: pct,
@@ -1162,7 +1179,12 @@ async function recalculateAndSaveScoreInline(email, examId, scoreId){
       marker_edited_at: new Date().toISOString()
     });
     
-    // ✅ YENİ PƏNCƏRƏDƏKİ UI-I YENİLƏ
+    // 4. ✅ Yoxla ki, həqiqətən yazıldı
+    if(!updateResult){
+      throw new Error('Server cavab vermədi');
+    }
+    
+    // 5. ✅ İNDİ UI-i yenilə (yalnız uğurlu yazıldıqdan sonra)
     if(currentCarnetWindow && !currentCarnetWindow.closed){
       const totalDisplay = currentCarnetWindow.document.getElementById('carnetTotalDisplay');
       if(totalDisplay) totalDisplay.textContent = `${totalEarned}/${totalMax} (${pct}%)`;
@@ -1180,7 +1202,7 @@ async function recalculateAndSaveScoreInline(email, examId, scoreId){
     
   } catch(error) {
     console.error('❌ Yeniləmə xətası:', error);
-    alert('Xəta baş verdi!');
+    alert('❌ Xəta baş verdi! Məlumat serverə yazılmadı.');
   }
 }
 
