@@ -907,22 +907,37 @@ async function showFinalResults(){
   else { grade = 1; gradeText = 'Qeyri-qənaətbəxş'; }
   
   const scoreRecord = await dbInsert('scores', { user_id: currentUser.id, exam_id: currentExamId, total_points: earnedPoints, max_points: totalPoints, percent: pct, correct_count: totalCorrect, total_questions: totalQ, grade: grade, grade_text: gradeText });
-  console.log('📝 ScoreRecord:', scoreRecord);
+
+console.log('📝 ScoreRecord:', scoreRecord);
+
+if(scoreRecord && scoreRecord.id){
+  const answerRecords = review.map(r => ({ 
+    score_id: scoreRecord.id, 
+    part_id: r.part, 
+    question_num: r.num, 
+    user_answer: r.userAns, 
+    user_image: r.userImage, 
+    correct_answer: r.answer, 
+    is_correct: r.correct, 
+    points: r.earned, 
+    max_points: r.points, 
+    needs_marker_review: r.needsMarkerReview 
+  }));
   
-  if(scoreRecord && scoreRecord.id){
-    const answerRecords = review.map(r => ({ score_id: scoreRecord.id, part_id: r.part, question_num: r.num, user_answer: r.userAns, user_image: r.userImage, correct_answer: r.answer, is_correct: r.correct, points: r.earned, max_points: r.points, needs_marker_review: r.needsMarkerReview }));
-    if(answerRecords.length > 0){
-      console.log('📝 Cavablar yazılır:', answerRecords.length, 'sual');
-      try {
-        const result = await apiPost('answers', answerRecords);
-        console.log('✅ Cavablar yazıldı:', result);
-      } catch(error) {
-        console.error('❌ Cavablar yazılmadı:', error);
-      }
+  console.log('📝 Cavablar yazılır:', answerRecords.length, 'sual');
+  console.log('📝 İlk cavab:', answerRecords[0]);
+  
+  if(answerRecords.length > 0){
+    try {
+      const result = await apiPost('answers', answerRecords);
+      console.log('✅ Cavablar yazıldı:', result);
+    } catch(error) {
+      console.error('❌ Cavablar yazılmadı:', error);
     }
-  } else {
-    console.error('❌ ScoreRecord yaradılmadı!');
   }
+} else {
+  console.error('❌ ScoreRecord yaradılmadı!');
+}
   
   if(!currentUser.scores) currentUser.scores = {};
   currentUser.scores[currentExamId] = { correct: totalCorrect, total: totalQ, points: earnedPoints, maxPoints: totalPoints, percent: pct, grade: grade, gradeText: gradeText, date: Date.now(), breakdown: breakdown, review: review };
