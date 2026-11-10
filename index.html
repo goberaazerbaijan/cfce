@@ -15,7 +15,6 @@
     <h1>Cambridge <span style="color:#fbbf24">FCE</span></h1>
     <div class="subtitle">Platformasına xoş gəlmisiniz</div>
     <div class="auth-tabs">
-      <!-- ✅ PROBLEM 3 HƏLLİ: event parametri əlavə edildi -->
       <button class="auth-tab active" onclick="switchAuthTab('login', event)">Giriş</button>
       <button class="auth-tab" onclick="switchAuthTab('register', event)">Qeydiyyat</button>
     </div>
@@ -93,7 +92,6 @@
   <div id="adminPage" class="admin-page hidden">
     <h2>🛠️ Admin Panel</h2>
     <div class="admin-tabs">
-      <!-- ✅ PROBLEM 3 HƏLLİ: event parametri əlavə edildi -->
       <button class="admin-tab active" onclick="switchAdminTab('users', event)">👥 İstifadəçilər</button>
       <button class="admin-tab" onclick="switchAdminTab('exams', event)">📋 İmtahanlar</button>
       <button class="admin-tab" onclick="switchAdminTab('upload', event)">📤 İmtahan Yüklə</button>
@@ -127,7 +125,6 @@
         <h3>📝 İmtahan Yüklə (Partlar üzrə)</h3>
         <div style="margin-bottom:16px">
           <label style="font-size:13px;font-weight:600;color:#374151">Part seçin:</label><br>
-          <!-- ✅ PROBLEM 1 HƏLLİ: uploadPartSelect elementi mütləq mövcuddur -->
           <select class="exam-select" id="uploadPartSelect" onchange="renderUploadForm()" style="margin-bottom:12px">
             <option value="part1">Part 1 — Multiple Choice Cloze</option>
             <option value="part2">Part 2 — Open Cloze</option>
