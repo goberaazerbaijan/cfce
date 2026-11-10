@@ -422,47 +422,77 @@ async function updateReviewScoreInline(input){
   const answerId = input.dataset.answerId;
   const newScore = parseFloat(input.value) || 0;
   const maxPt = parseFloat(input.max) || 1;
-  if(newScore > maxPt){ alert(`Maksimum bal ${maxPt}-dir!`); input.value = 0; return; }
-  if(newScore < 0){ alert(`Bal mənfi ola bilməz!`); input.value = 0; return; }
+  
+  if(newScore > maxPt){ 
+    alert(`Maksimum bal ${maxPt}-dir!`); 
+    input.value = 0; 
+    return; 
+  }
+  if(newScore < 0){ 
+    alert(`Bal mənfi ola bilməz!`); 
+    input.value = 0; 
+    return; 
+  }
+  
   const isCorrect = (newScore === maxPt);
-  await dbUpdate('answers', answerId, { points: newScore, is_correct: isCorrect });
-  const row = input.closest('tr');
-  if(row){
-    row.style.background = isCorrect ? '#dcfce7' : '#fee2e2';
-    const statusCell = row.cells[4];
-    if(statusCell) statusCell.textContent = isCorrect ? '✅ Düzgün' : '❌ Səhv';
+  
+  try {
+    await dbUpdate('answers', answerId, { points: newScore, is_correct: isCorrect });
+    console.log('✅ Bal yeniləndi:', answerId, newScore);
+    
+    const row = input.closest('tr');
+    if(row){
+      row.style.background = isCorrect ? '#dcfce7' : '#fee2e2';
+      const statusCell = row.cells[4];
+      if(statusCell) statusCell.textContent = isCorrect ? '✅ Düzgün' : '❌ Səhv';
+    }
+  } catch(error) {
+    console.error('❌ Bal yenilənə bilmədi:', error);
+    alert('Xəta baş verdi!');
   }
 }
 
 async function recalculateAndSaveScoreInline(email, examId, scoreId){
-  const answers = await dbQuery('answers', { score_id: scoreId });
-  let totalEarned = 0, totalMax = 0, correctCount = 0;
-  answers.forEach(a => {
-    totalMax += (a.max_points || 1);
-    totalEarned += (a.points || 0);
-    if(a.is_correct) correctCount++;
-  });
-  const pct = totalMax > 0 ? Math.round((totalEarned / totalMax) * 100) : 0;
-  let grade, gradeText;
-  if(pct >= 90){ grade = 5; gradeText = 'Əla'; }
-  else if(pct >= 75){ grade = 4; gradeText = 'Yaxşı'; }
-  else if(pct >= 60){ grade = 3; gradeText = 'Orta'; }
-  else if(pct >= 40){ grade = 2; gradeText = 'Qənaətbəxş'; }
-  else { grade = 1; gradeText = 'Qeyri-qənaətbəxş'; }
-  await dbUpdate('scores', scoreId, {
-    total_points: totalEarned,
-    max_points: totalMax,
-    percent: pct,
-    correct_count: correctCount,
-    grade: grade,
-    grade_text: gradeText,
-    marker_edited: true,
-    marker_name: currentUser?.name || 'Marker',
-    marker_edited_at: new Date().toISOString()
-  });
+  if(!confirm('Balı yeniləmək istədiyinizə əminsiniz?')) return;
+  
   try {
+    const answers = await apiGet('answers', { score_id: scoreId });
+    if(!Array.isArray(answers) || answers.length === 0){
+      alert('Cavablar tapılmadı!');
+      return;
+    }
+    
+    let totalEarned = 0, totalMax = 0, correctCount = 0;
+    answers.forEach(a => {
+      totalMax += (a.max_points || 1);
+      totalEarned += (a.points || 0);
+      if(a.is_correct) correctCount++;
+    });
+    
+    const pct = totalMax > 0 ? Math.round((totalEarned / totalMax) * 100) : 0;
+    let grade, gradeText;
+    if(pct >= 90){ grade = 5; gradeText = 'Əla'; }
+    else if(pct >= 75){ grade = 4; gradeText = 'Yaxşı'; }
+    else if(pct >= 60){ grade = 3; gradeText = 'Orta'; }
+    else if(pct >= 40){ grade = 2; gradeText = 'Qənaətbəxş'; }
+    else { grade = 1; gradeText = 'Qeyri-qənaətbəxş'; }
+    
+    await dbUpdate('scores', scoreId, {
+      total_points: totalEarned,
+      max_points: totalMax,
+      percent: pct,
+      correct_count: correctCount,
+      grade: grade,
+      grade_text: gradeText,
+      marker_edited: true,
+      marker_name: currentUser?.name || 'Marker',
+      marker_edited_at: new Date().toISOString()
+    });
+    
+    // ✅ UI-i yenilə
     const totalDisplay = document.getElementById('carnetTotalDisplay');
     if(totalDisplay) totalDisplay.textContent = `${totalEarned}/${totalMax} (${pct}%)`;
+    
     const gradeBadge = document.getElementById('carnetGradeBadge');
     if(gradeBadge){
       const colors = {5:'#16a34a', 4:'#2563eb', 3:'#fbbf24', 2:'#f97316', 1:'#dc2626'};
@@ -470,8 +500,16 @@ async function recalculateAndSaveScoreInline(email, examId, scoreId){
       gradeBadge.style.color = grade === 3 ? '#1a1a2e' : '#fff';
       gradeBadge.textContent = `${totalEarned}/${totalMax} (${pct}%)`;
     }
-  } catch(e){ console.error('UI yeniləmə xətası:', e); }
-  alert(`✅ Yaddaşa verildi!\n\nYeni bal: ${totalEarned}/${totalMax} (${pct}%)\nQiymət: ${grade} (${gradeText})`);
+    
+    alert(`✅ Yaddaşa verildi!\n\nYeni bal: ${totalEarned}/${totalMax} (${pct}%)\nQiymət: ${grade} (${gradeText})`);
+    
+    // ✅ Nəticə vərəqini yenilə
+    await showCarnet();
+    
+  } catch(error) {
+    console.error('❌ Yeniləmə xətası:', error);
+    alert('Xəta baş verdi!');
+  }
 }
 
 function renderMarkerUserSelect(){
@@ -1072,9 +1110,23 @@ async function showFinalResults(){
   else { grade = 1; gradeText = 'Qeyri-qənaətbəxş'; }
   const scoreRecord = await dbInsert('scores', { user_id: currentUser.id, exam_id: currentExamId, total_points: earnedPoints, max_points: totalPoints, percent: pct, correct_count: totalCorrect, total_questions: totalQ, grade: grade, grade_text: gradeText });
   if(scoreRecord){
-    const answerRecords = review.map(r => ({ score_id: scoreRecord.id, part_id: r.part, question_num: r.num, user_answer: r.userAns, user_image: r.userImage, correct_answer: r.answer, is_correct: r.correct, points: r.earned, max_points: r.points, needs_marker_review: r.needsMarkerReview }));
-    if(answerRecords.length > 0) await apiPost('answers', answerRecords);
+  const answerRecords = review.map(r => ({ 
+    score_id: scoreRecord.id, 
+    part_id: r.part, 
+    question_num: r.num, 
+    user_answer: r.userAns, 
+    user_image: r.userImage, 
+    correct_answer: r.answer, 
+    is_correct: r.correct, 
+    points: r.earned, 
+    max_points: r.points, 
+    needs_marker_review: r.needsMarkerReview 
+  }));
+  if(answerRecords.length > 0) {
+    console.log('📝 Cavablar yazılır:', answerRecords.length, 'sual');
+    await apiPost('answers', answerRecords);
   }
+}
   if(!currentUser.scores) currentUser.scores = {};
   currentUser.scores[currentExamId] = { correct: totalCorrect, total: totalQ, points: earnedPoints, maxPoints: totalPoints, percent: pct, grade: grade, gradeText: gradeText, date: Date.now(), breakdown: breakdown, review: review };
   saveSession(currentUser);
