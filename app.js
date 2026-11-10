@@ -1518,5 +1518,23 @@ async function removeMarker(email){
   renderMarkersList(); renderMarkerUserSelect(); renderAdminUsers();
 }
 
+async function removeMarker(email){
+if(!confirm('Bu istifadəçini markerlikdən çıxarmaq istədiyinizə əminsiniz?')) return;
+const users = await dbQuery('users', { email: email });
+if(users.length === 0) return;
+await dbUpdate('users', users[0].id, { role: 'student' });
+renderMarkersList(); renderMarkerUserSelect(); renderAdminUsers();
+}
+
+// ✅ BÜTÜN FUNKSİYALARI GLOBAL ET
+window.updateReviewScoreInline = updateReviewScoreInline;
+window.recalculateAndSaveScoreInline = recalculateAndSaveScoreInline;
+window.openWritingCanvas = openWritingCanvas;
+window.clearWritingCanvas = clearWritingCanvas;
+window.saveWritingCanvas = saveWritingCanvas;
+window.closeWritingCanvas = closeWritingCanvas;
+window.clearHandwriting = clearHandwriting;
+window.selectPersonFromCard = selectPersonFromCard;
+
 // ==================== INIT ====================
 initDB().then(() => { if(currentUser) enterApp(); });
