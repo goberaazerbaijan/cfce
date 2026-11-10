@@ -46,7 +46,7 @@ async function dbInsert(table, record) { return await apiPost(table, record); }
 async function dbUpdate(table, id, update) { return await apiPut(table, id, update); }
 async function dbDelete(table, id) { return await apiDelete(table, id); }
 
-// ==================== DATA ====================
+// ==================== DATA (BOŞLUQLAR TƏMİZLƏNDİ) ====================
 const EXAMS = { fce_full: { id:'fce_full', title:'FCE Full Practice Test', icon:'📚', description:'Tam FCE Reading & Use of English imtahanı (7 Part)', parts:['part1','part2','part3','part4','part5','part6','part7'] } };
 
 const part1Data = {
@@ -1072,7 +1072,7 @@ async function showCarnet(){
         <td>${a.is_correct ? '✅ Düzgün' : '❌ Səhv'}</td>
         <td>`;
       if(canEdit){
-        html += `<input type="number" class="marker-score-input" data-idx="${idx}" data-answer-id="${a.id}" value="${a.points || 0}" min="0" max="${a.max_points || 1}" step="0.5" style="width:70px;padding:6px;border:2px solid #e5e7eb;border-radius:6px;text-align:center;font-weight:700" onchange="updateReviewScoreInline(this)"><span style="font-size:11px;color:#666">/${a.max_points || 1}</span>`;
+        html += `<input type="number" class="marker-score-input" data-idx="${idx}" data-answer-id="${a.id}" value="${a.points || 0}" min="0" max="${a.max_points || 1}" step="0.5" style="width:70px;padding:6px;border:2px solid #e5e7eb;border-radius:6px;text-align:center;font-weight:700" onchange="window.opener.updateReviewScoreInline(this)"><span style="font-size:11px;color:#666">/${a.max_points || 1}</span>`;
       } else {
         html += `<strong>${a.points || 0}/${a.max_points || 1}</strong>`;
       }
@@ -1084,7 +1084,7 @@ async function showCarnet(){
   
   if(canEdit && answers.length > 0){
     html += `<div style="margin-top:20px;text-align:center">
-      <button onclick="recalculateAndSaveScoreInline('${currentUser.email}','${examId}','${score.id}')" style="padding:14px 32px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">💾 Balları Yenilə və Yadda Saxla</button>
+      <button onclick="window.opener.recalculateAndSaveScoreInline('${currentUser.email}','${examId}','${score.id}')" style="padding:14px 32px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">💾 Balları Yenilə və Yadda Saxla</button>
       <p style="font-size:12px;color:#666;margin-top:8px">⚠️ Diqqət: Bu əməliyyat ümumi balı və qiyməti yeniləyəcək.</p>
     </div>`;
   }
