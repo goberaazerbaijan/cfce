@@ -46,7 +46,7 @@ async function dbInsert(table, record) { return await apiPost(table, record); }
 async function dbUpdate(table, id, update) { return await apiPut(table, id, update); }
 async function dbDelete(table, id) { return await apiDelete(table, id); }
 
-// ==================== DATA (BOŞLUQLAR TƏMİZLƏNDİ) ====================
+// ==================== DATA (TƏMİZLƏNMİŞ) ====================
 const EXAMS = { fce_full: { id:'fce_full', title:'FCE Full Practice Test', icon:'📚', description:'Tam FCE Reading & Use of English imtahanı (7 Part)', parts:['part1','part2','part3','part4','part5','part6','part7'] } };
 
 const part1Data = {
@@ -384,7 +384,7 @@ function showCarnetFromCurrent(){
   showCarnet();
 }
 
-// ==================== EXAM LIST (1 İMTAHAN = 1 DƏFƏ) ====================
+// ==================== EXAM LIST ====================
 async function showExamList(){
   document.getElementById('examPage').classList.add('hidden');
   document.getElementById('carnetPage').classList.add('hidden');
@@ -868,6 +868,7 @@ function continueToNext(){
 
 function normalizeAnswer(t){ return t ? t.trim().toUpperCase().replace(/\s+/g, ' ') : ''; }
 
+// ✅ TAM DÜZƏLDİLMİŞ: Cavablar Supabase-ə yazılır
 async function showFinalResults(){
   const exam = EXAMS[currentExamId];
   const pointsData = await dbQuery('exam_points', { exam_id: currentExamId });
@@ -903,31 +904,47 @@ async function showFinalResults(){
   else if(pct >= 60){ grade = 3; gradeText = 'Orta'; }
   else if(pct >= 40){ grade = 2; gradeText = 'Qənaətbəxş'; }
   else { grade = 1; gradeText = 'Qeyri-qənaətbəxş'; }
+  
   const scoreRecord = await dbInsert('scores', { user_id: currentUser.id, exam_id: currentExamId, total_points: earnedPoints, max_points: totalPoints, percent: pct, correct_count: totalCorrect, total_questions: totalQ, grade: grade, grade_text: gradeText });
-  if(scoreRecord){
+  
+  console.log('📝 ScoreRecord:', scoreRecord);
+  
+  if(scoreRecord && scoreRecord.id){
     const answerRecords = review.map(r => ({ score_id: scoreRecord.id, part_id: r.part, question_num: r.num, user_answer: r.userAns, user_image: r.userImage, correct_answer: r.answer, is_correct: r.correct, points: r.earned, max_points: r.points, needs_marker_review: r.needsMarkerReview }));
     if(answerRecords.length > 0){
       console.log('📝 Cavablar yazılır:', answerRecords.length, 'sual');
-      await apiPost('answers', answerRecords);
+      try {
+        const result = await apiPost('answers', answerRecords);
+        console.log('✅ Cavablar yazıldı:', result);
+      } catch(error) {
+        console.error('❌ Cavablar yazılmadı:', error);
+      }
     }
+  } else {
+    console.error('❌ ScoreRecord yaradılmadı!');
   }
+  
   if(!currentUser.scores) currentUser.scores = {};
   currentUser.scores[currentExamId] = { correct: totalCorrect, total: totalQ, points: earnedPoints, maxPoints: totalPoints, percent: pct, grade: grade, gradeText: gradeText, date: Date.now(), breakdown: breakdown, review: review };
   saveSession(currentUser);
+  
   let emoji, msg;
   if(pct >= 90){ emoji = '🏆'; msg = 'Mükəmməl nəticə!'; }
   else if(pct >= 75){ emoji = '🎉'; msg = 'Əla iş!'; }
   else if(pct >= 60){ emoji = '💪'; msg = 'Yaxşı nəticə!'; }
   else if(pct >= 40){ emoji = '📚'; msg = 'Orta səviyyə.'; }
   else { emoji = '💪'; msg = 'Daha çox çalışın!'; }
+  
   document.getElementById('rEmoji').textContent = emoji;
   document.getElementById('rTitle').textContent = 'İmtahan Tamamlandı!';
   document.getElementById('rScore').textContent = `${earnedPoints}`;
   document.getElementById('rTotal').textContent = `${totalPoints} bal (${pct}%)`;
   document.getElementById('rMsg').textContent = `${msg} Qiymət: ${grade} (${gradeText})`;
+  
   let bhtml = '';
   breakdown.forEach(b => { bhtml += `<div class="breakdown-item"><div class="b-label">${b.label}</div><div class="b-score"><span>${b.points}</span>/${b.maxPoints}</div></div>`; });
   document.getElementById('rBreakdown').innerHTML = bhtml;
+  
   let rhtml = '';
   exam.parts.forEach(pid => {
     const m = MODULES[pid];
@@ -966,12 +983,19 @@ async function showCarnet(){
   if(scores.length === 0){ alert('Nəticə tapılmadı!'); backToExams(); return; }
   const score = scores[0];
   
-  // ✅ Cavabları düzgün al
+  console.log('🔍 Score ID:', score.id);
+  
   let answers = [];
   try {
-    const response = await apiGet('answers', { score_id: score.id });
-    answers = Array.isArray(response) ? response : [];
-    console.log('✅ Cavablar alındı:', answers.length, 'sual');
+    const url = new URL(`${API_URL}/answers/filter`);
+    url.searchParams.append('score_id', score.id);
+    const res = await fetch(url);
+    if(res.ok) {
+      answers = await res.json();
+      console.log('✅ Cavablar alındı:', answers.length, 'sual');
+    } else {
+      console.error('❌ Cavablar alınamadı:', res.status);
+    }
   } catch(error) {
     console.error('❌ Cavablar alınamadı:', error);
   }
@@ -1058,7 +1082,6 @@ async function showCarnet(){
   document.getElementById('carnetPage').innerHTML = html;
 }
 
-// ✅ Marker düzəliş edə bilsin
 async function updateReviewScoreInline(input){
   const idx = parseInt(input.dataset.idx);
   const answerId = input.dataset.answerId;
@@ -1086,7 +1109,6 @@ async function updateReviewScoreInline(input){
   }
 }
 
-// ✅ Marker nəticəni yadda saxlasın
 async function recalculateAndSaveScoreInline(email, examId, scoreId){
   if(!confirm('Balı yeniləmək istədiyinizə əminsiniz?')) return;
   
@@ -1124,21 +1146,8 @@ async function recalculateAndSaveScoreInline(email, examId, scoreId){
       marker_edited_at: new Date().toISOString()
     });
     
-    // UI-i yenilə
-    const totalDisplay = document.getElementById('carnetTotalDisplay');
-    if(totalDisplay) totalDisplay.textContent = `${totalEarned}/${totalMax} (${pct}%)`;
-    
-    const gradeBadge = document.getElementById('carnetGradeBadge');
-    if(gradeBadge){
-      const colors = {5:'#16a34a', 4:'#2563eb', 3:'#fbbf24', 2:'#f97316', 1:'#dc2626'};
-      gradeBadge.style.background = colors[grade] || '#dc2626';
-      gradeBadge.style.color = grade === 3 ? '#1a1a2e' : '#fff';
-      gradeBadge.textContent = `${totalEarned}/${totalMax} (${pct}%)`;
-    }
-    
     alert(`✅ Yaddaşa verildi!\n\nYeni bal: ${totalEarned}/${totalMax} (${pct}%)\nQiymət: ${grade} (${gradeText})`);
     
-    // Nəticə vərəqini yenilə
     await showCarnet();
     
   } catch(error) {
@@ -1392,7 +1401,6 @@ async function renderStudentResultsList(){
   container.innerHTML = html;
 }
 
-// ✅ Marker/Admin üçün nəticə vərəqi
 async function viewCarnetFromAdmin(email, examId){
   const users = await dbQuery('users', { email: email });
   if(users.length === 0) return;
