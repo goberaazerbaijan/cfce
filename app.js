@@ -889,7 +889,6 @@ async function showFinalResults(){
       const textAnswer = typeof rawAnswer === 'object' ? rawAnswer.text : rawAnswer;
       const imageAnswer = typeof rawAnswer === 'object' ? rawAnswer.image : null;
       let correct = false;
-      // ✅ .trim() ilə müqayisə
       if(m.questions && m.questions.includes(it)) correct = (textAnswer || '').trim() === it.answer.trim();
       else if(m.gaps && m.gaps.includes(it)) correct = normalizeAnswer(textAnswer) === it.answer.trim();
       if(correct){ pCorrect++; pEarned += pt; totalCorrect++; }
@@ -907,37 +906,35 @@ async function showFinalResults(){
   else { grade = 1; gradeText = 'Qeyri-qənaətbəxş'; }
   
   const scoreRecord = await dbInsert('scores', { user_id: currentUser.id, exam_id: currentExamId, total_points: earnedPoints, max_points: totalPoints, percent: pct, correct_count: totalCorrect, total_questions: totalQ, grade: grade, grade_text: gradeText });
-
-console.log('📝 ScoreRecord:', scoreRecord);
-
-if(scoreRecord && scoreRecord.id){
-  const answerRecords = review.map(r => ({ 
-    score_id: scoreRecord.id, 
-    part_id: r.part, 
-    question_num: r.num, 
-    user_answer: r.userAns, 
-    user_image: r.userImage, 
-    correct_answer: r.answer, 
-    is_correct: r.correct, 
-    points: r.earned, 
-    max_points: r.points, 
-    needs_marker_review: r.needsMarkerReview 
-  }));
+  console.log('📝 ScoreRecord:', scoreRecord);
   
-  console.log('📝 Cavablar yazılır:', answerRecords.length, 'sual');
-  console.log('📝 İlk cavab:', answerRecords[0]);
-  
-  if(answerRecords.length > 0){
-    try {
-      const result = await apiPost('answers', answerRecords);
-      console.log('✅ Cavablar yazıldı:', result);
-    } catch(error) {
-      console.error('❌ Cavablar yazılmadı:', error);
+  if(scoreRecord && scoreRecord.id){
+    const answerRecords = review.map(r => ({ 
+      score_id: scoreRecord.id, 
+      part_id: r.part, 
+      question_num: r.num, 
+      user_answer: r.userAns, 
+      user_image: r.userImage, 
+      correct_answer: r.answer, 
+      is_correct: r.correct, 
+      points: r.earned, 
+      max_points: r.points, 
+      needs_marker_review: r.needsMarkerReview 
+    }));
+    
+    console.log('📝 Cavablar yazılır:', answerRecords.length, 'sual');
+    
+    if(answerRecords.length > 0){
+      try {
+        const result = await apiPost('answers', answerRecords);
+        console.log('✅ Cavablar yazıldı:', result);
+      } catch(error) {
+        console.error('❌ Cavablar yazılmadı:', error);
+      }
     }
+  } else {
+    console.error('❌ ScoreRecord yaradılmadı!');
   }
-} else {
-  console.error('❌ ScoreRecord yaradılmadı!');
-}
   
   if(!currentUser.scores) currentUser.scores = {};
   currentUser.scores[currentExamId] = { correct: totalCorrect, total: totalQ, points: earnedPoints, maxPoints: totalPoints, percent: pct, grade: grade, gradeText: gradeText, date: Date.now(), breakdown: breakdown, review: review };
@@ -1003,7 +1000,6 @@ async function showCarnet(){
   
   console.log('🔍 Score ID:', score.id);
   
-  // ✅ Cavabları düzgün al
   let answers = [];
   try {
     const url = new URL(`${API_URL}/answers/filter`);
@@ -1076,7 +1072,7 @@ async function showCarnet(){
         <td>${a.is_correct ? '✅ Düzgün' : '❌ Səhv'}</td>
         <td>`;
       if(canEdit){
-        html += `<input type="number" class="marker-score-input" data-idx="${idx}" data-answer-id="${a.id}" value="${a.points || 0}" min="0" max="${a.max_points || 1}" step="0.5" style="width:70px;padding:6px;border:2px solid #e5e7eb;border-radius:6px;text-align:center;font-weight:700" onchange="updateReviewScoreInline(this)"><span style="font-size:11px;color:#666">/${a.max_points || 1}</span>`;
+        html += `<input type="number" class="marker-score-input" data-idx="${idx}" data-answer-id="${a.id}" value="${a.points || 0}" min="0" max="${a.max_points || 1}" step="0.5" style="width:70px;padding:6px;border:2px solid #e5e7eb;border-radius:6px;text-align:center;font-weight:700" onchange="window.opener.updateReviewScoreInline(this)"><span style="font-size:11px;color:#666">/${a.max_points || 1}</span>`;
       } else {
         html += `<strong>${a.points || 0}/${a.max_points || 1}</strong>`;
       }
@@ -1088,7 +1084,7 @@ async function showCarnet(){
   
   if(canEdit && answers.length > 0){
     html += `<div style="margin-top:20px;text-align:center">
-      <button onclick="recalculateAndSaveScoreInline('${currentUser.email}','${examId}','${score.id}')" style="padding:14px 32px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">💾 Balları Yenilə və Yadda Saxla</button>
+      <button onclick="window.opener.recalculateAndSaveScoreInline('${currentUser.email}','${examId}','${score.id}')" style="padding:14px 32px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">💾 Balları Yenilə və Yadda Saxla</button>
       <p style="font-size:12px;color:#666;margin-top:8px">⚠️ Diqqət: Bu əməliyyat ümumi balı və qiyməti yeniləyəcək.</p>
     </div>`;
   }
@@ -1166,6 +1162,7 @@ async function recalculateAndSaveScoreInline(email, examId, scoreId){
     });
     
     alert(`✅ Yaddaşa verildi!\n\nYeni bal: ${totalEarned}/${totalMax} (${pct}%)\nQiymət: ${grade} (${gradeText})`);
+    
     await showCarnet();
     
   } catch(error) {
@@ -1179,7 +1176,8 @@ function backToExams(){
   document.getElementById('carnetPage').classList.add('hidden');
   document.getElementById('adminPage').classList.add('hidden');
   document.getElementById('markerDashboard').classList.add('hidden');
-  document.getElementById('resultsScreen')?.classList.remove('show');
+  const resultsScreen = document.getElementById('resultsScreen');
+  if(resultsScreen) resultsScreen.classList.remove('show');
   hideExamNavButtons();
   if(currentUser.role === 'admin') showAdmin();
   else if(currentUser.role === 'marker') showMarkerDashboard();
@@ -1419,7 +1417,7 @@ async function renderStudentResultsList(){
   container.innerHTML = html;
 }
 
-// ✅ Marker/Admin üçün nəticə vərəqi
+// ✅ TAM DÜZƏLDİLMİŞ: Marker/Admin üçün nəticə vərəqi
 async function viewCarnetFromAdmin(email, examId){
   const users = await dbQuery('users', { email: email });
   if(users.length === 0) return;
@@ -1466,7 +1464,8 @@ async function viewCarnetFromAdmin(email, examId){
       if(a.user_image) answerDisplay = `<img src="${a.user_image}" style="max-height:50px;border:1px solid #e5e7eb;border-radius:4px" />`;
       html += `<tr style="background:${a.is_correct ? '#dcfce7' : '#fee2e2'}" id="reviewRow_${idx}"><td style="padding:12px;border-bottom:1px solid #e5e7eb">Part ${m.moduleNum}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.question_num}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${answerDisplay}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.correct_answer || '—'}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.is_correct ? '✅ Düzgün' : '❌ Səhv'}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">`;
       if(canEdit){
-        html += `<input type="number" class="marker-score-input" data-idx="${idx}" data-answer-id="${a.id}" value="${a.points || 0}" min="0" max="${a.max_points || 1}" step="0.5" style="width:70px;padding:6px;border:2px solid #e5e7eb;border-radius:6px;text-align:center;font-weight:700" onchange="updateReviewScoreInline(this)"><span style="font-size:11px;color:#666">/${a.max_points || 1}</span>`;
+        // ✅ DÜZƏLİŞ: window.opener ilə çağırılır
+        html += `<input type="number" class="marker-score-input" data-idx="${idx}" data-answer-id="${a.id}" value="${a.points || 0}" min="0" max="${a.max_points || 1}" step="0.5" style="width:70px;padding:6px;border:2px solid #e5e7eb;border-radius:6px;text-align:center;font-weight:700" onchange="window.opener.updateReviewScoreInline(this)"><span style="font-size:11px;color:#666">/${a.max_points || 1}</span>`;
       } else {
         html += `<strong>${a.points || 0}/${a.max_points || 1}</strong>`;
       }
@@ -1476,7 +1475,8 @@ async function viewCarnetFromAdmin(email, examId){
   
   html += `</tbody></table>`;
   if(canEdit && answers.length > 0){
-    html += `<div style="margin-top:20px;text-align:center"><button onclick="recalculateAndSaveScoreInline('${email}','${examId}','${score.id}')" style="padding:14px 32px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">💾 Balları Yenilə və Yadda Saxla</button><p style="font-size:12px;color:#666;margin-top:8px">⚠️ Diqqət: Bu əməliyyat şagirdin ümumi balını və qiymətini yeniləyəcək.</p></div>`;
+    // ✅ DÜZƏLİŞ: window.opener ilə çağırılır
+    html += `<div style="margin-top:20px;text-align:center"><button onclick="window.opener.recalculateAndSaveScoreInline('${email}','${examId}','${score.id}')" style="padding:14px 32px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">💾 Balları Yenilə və Yadda Saxla</button><p style="font-size:12px;color:#666;margin-top:8px">⚠️ Diqqət: Bu əməliyyat şagirdin ümumi balını və qiymətini yeniləyəcək.</p></div>`;
   }
   html += `</div></div>`;
   const w = window.open('', '_blank', 'width=900,height=800');
@@ -1517,24 +1517,6 @@ async function removeMarker(email){
   await dbUpdate('users', users[0].id, { role: 'student' });
   renderMarkersList(); renderMarkerUserSelect(); renderAdminUsers();
 }
-
-async function removeMarker(email){
-if(!confirm('Bu istifadəçini markerlikdən çıxarmaq istədiyinizə əminsiniz?')) return;
-const users = await dbQuery('users', { email: email });
-if(users.length === 0) return;
-await dbUpdate('users', users[0].id, { role: 'student' });
-renderMarkersList(); renderMarkerUserSelect(); renderAdminUsers();
-}
-
-// ✅ BÜTÜN FUNKSİYALARI GLOBAL ET
-window.updateReviewScoreInline = updateReviewScoreInline;
-window.recalculateAndSaveScoreInline = recalculateAndSaveScoreInline;
-window.openWritingCanvas = openWritingCanvas;
-window.clearWritingCanvas = clearWritingCanvas;
-window.saveWritingCanvas = saveWritingCanvas;
-window.closeWritingCanvas = closeWritingCanvas;
-window.clearHandwriting = clearHandwriting;
-window.selectPersonFromCard = selectPersonFromCard;
 
 // ==================== INIT ====================
 initDB().then(() => { if(currentUser) enterApp(); });
