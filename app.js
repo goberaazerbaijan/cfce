@@ -966,9 +966,12 @@ async function showFinalResults(){
 
 // ✅ TAM DÜZƏLDİLMİŞ: Nəticə vərəqi — cavablar düzgün göstərilir
 async function showCarnet(){
-  document.getElementById('resultsScreen').classList.remove('show');
-  document.getElementById('examPage').classList.add('hidden');
-  document.getElementById('carnetPage').classList.remove('hidden');
+  const resultsScreen = document.getElementById('resultsScreen');
+  if(resultsScreen) resultsScreen.classList.remove('show');
+  const examPage = document.getElementById('examPage');
+  if(examPage) examPage.classList.add('hidden');
+  const carnetPage = document.getElementById('carnetPage');
+  if(carnetPage) carnetPage.classList.remove('hidden');
   hideExamNavButtons();
   
   let examId = currentExamId;
