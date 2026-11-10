@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cambridge FCE — Platform</title>
 <link rel="stylesheet" href="style.css">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
@@ -16,8 +15,9 @@
     <h1>Cambridge <span style="color:#fbbf24">FCE</span></h1>
     <div class="subtitle">Platformasına xoş gəlmisiniz</div>
     <div class="auth-tabs">
-      <button class="auth-tab active" onclick="switchAuthTab('login')">Giriş</button>
-      <button class="auth-tab" onclick="switchAuthTab('register')">Qeydiyyat</button>
+      <!-- ✅ PROBLEM 3 HƏLLİ: event parametri əlavə edildi -->
+      <button class="auth-tab active" onclick="switchAuthTab('login', event)">Giriş</button>
+      <button class="auth-tab" onclick="switchAuthTab('register', event)">Qeydiyyat</button>
     </div>
     <div id="authError" class="auth-error"></div>
     <div id="authSuccess" class="auth-success"></div>
@@ -84,7 +84,7 @@
     </div>
     <div class="marker-stats" id="markerStats"></div>
     <div class="marker-card">
-      <h3> Şagird Nəticələri</h3>
+      <h3>📋 Şagird Nəticələri</h3>
       <div id="markerStudentList"></div>
     </div>
   </div>
@@ -93,12 +93,13 @@
   <div id="adminPage" class="admin-page hidden">
     <h2>🛠️ Admin Panel</h2>
     <div class="admin-tabs">
-      <button class="admin-tab active" onclick="switchAdminTab('users')">👥 İstifadəçilər</button>
-      <button class="admin-tab" onclick="switchAdminTab('exams')">📋 İmtahanlar</button>
-      <button class="admin-tab" onclick="switchAdminTab('upload')">📤 İmtahan Yüklə</button>
-      <button class="admin-tab" onclick="switchAdminTab('points')">⚙️ Ballar</button>
-      <button class="admin-tab" onclick="switchAdminTab('results')">📊 Nəticələr</button>
-      <button class="admin-tab" onclick="switchAdminTab('markers')">✍️ Markerlər</button>
+      <!-- ✅ PROBLEM 3 HƏLLİ: event parametri əlavə edildi -->
+      <button class="admin-tab active" onclick="switchAdminTab('users', event)">👥 İstifadəçilər</button>
+      <button class="admin-tab" onclick="switchAdminTab('exams', event)">📋 İmtahanlar</button>
+      <button class="admin-tab" onclick="switchAdminTab('upload', event)">📤 İmtahan Yüklə</button>
+      <button class="admin-tab" onclick="switchAdminTab('points', event)">⚙️ Ballar</button>
+      <button class="admin-tab" onclick="switchAdminTab('results', event)">📊 Nəticələr</button>
+      <button class="admin-tab" onclick="switchAdminTab('markers', event)">✍️ Markerlər</button>
     </div>
 
     <div id="adminUsers" class="admin-section active">
@@ -126,6 +127,7 @@
         <h3>📝 İmtahan Yüklə (Partlar üzrə)</h3>
         <div style="margin-bottom:16px">
           <label style="font-size:13px;font-weight:600;color:#374151">Part seçin:</label><br>
+          <!-- ✅ PROBLEM 1 HƏLLİ: uploadPartSelect elementi mütləq mövcuddur -->
           <select class="exam-select" id="uploadPartSelect" onchange="renderUploadForm()" style="margin-bottom:12px">
             <option value="part1">Part 1 — Multiple Choice Cloze</option>
             <option value="part2">Part 2 — Open Cloze</option>
