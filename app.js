@@ -155,68 +155,365 @@ function enterApp(){
   document.getElementById('userDisplay').textContent = `${currentUser.name} (${currentUser.role==='admin'?'Admin':currentUser.role==='marker'?'Marker':'Şagird'})`;
   if(currentUser.role === 'admin') showAdmin();
   else if(currentUser.role === 'marker') showMarkerDashboard();
-  else showStudentDashboard(); // ✅ DƏYİŞDİ: showExamList() əvəzinə
+  else showExamList();
 }
 
-// ✅ YENİ: Şagird dashboard-u
-function showStudentDashboard(){
+// ==================== ADMIN ====================
+async function showAdmin(){
+  document.getElementById('examListPage').classList.add('hidden');
   document.getElementById('examPage').classList.add('hidden');
   document.getElementById('carnetPage').classList.add('hidden');
-  document.getElementById('adminPage').classList.add('hidden');
   document.getElementById('markerDashboard').classList.add('hidden');
-  document.getElementById('studentDashboard').classList.remove('hidden');
+  document.getElementById('adminPage').classList.remove('hidden');
   hideExamNavButtons();
-  document.getElementById('studentName').textContent = currentUser.name;
-  switchDashTab('exams');
+  await renderAdminUsers();
+  renderAdminExams();
+  renderUploadForm();
+  renderPointsExamSelect();
+  await renderStudentResultsList();
+  renderMarkersList();
+  renderMarkerUserSelect();
 }
 
-function switchDashTab(tab){
-  document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
+function switchAdminTab(tab){
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
   event.target.classList.add('active');
-  document.querySelectorAll('.dash-section').forEach(s => s.classList.remove('active'));
-  document.getElementById('dash' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
-  if(tab === 'exams') showExamList();
-  if(tab === 'results') showMyResults();
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('admin' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+  if(tab === 'users') renderAdminUsers();
+  if(tab === 'exams') renderAdminExams();
+  if(tab === 'upload') renderUploadForm();
+  if(tab === 'points') renderPointsExamSelect();
+  if(tab === 'results') renderStudentResultsList();
+  if(tab === 'markers'){ renderMarkersList(); renderMarkerUserSelect(); }
 }
 
-async function showMyResults(){
-  const container = document.getElementById('myResultsList');
-  const scores = await dbQuery('scores', { user_id: currentUser.id });
-  if(scores.length === 0){
-    container.innerHTML = '<div class="no-data">Hələ nəticəniz yoxdur. İmtahan verin!</div>';
-    return;
+async function renderAdminUsers(){
+  const tbody = document.getElementById('usersTableBody');
+  const users = await dbQuery('users');
+  tbody.innerHTML = '';
+  for(const u of users){
+    const scores = await dbQuery('scores', { user_id: u.id });
+    const completed = scores.length;
+    const totalEarned = scores.reduce((sum, s) => sum + (s.total_points || 0), 0);
+    const totalMax = scores.reduce((sum, s) => sum + (s.max_points || 0), 0);
+    const balText = completed > 0 ? `${totalEarned}/${totalMax}` : '—';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${u.name}</td><td>${u.email}</td><td><span class="user-role ${u.role==='admin' ? 'role-admin' : u.role==='marker' ? 'role-marker' : 'role-student'}">${u.role}</span></td><td>${completed} imtahan</td><td><strong style="color:#1a1a2e">${balText}</strong></td><td>${u.role !== 'admin' ? `<button class="btn-sm btn-view" onclick="viewUserAnswers('${u.email}')">Cavablar</button><button class="btn-sm btn-del" onclick="deleteUser('${u.email}')">Sil</button>` : ''}</td>`;
+    tbody.appendChild(tr);
   }
-  let html = '<div style="display:grid;gap:12px">';
-  scores.forEach(sc => {
+}
+
+async function deleteUser(email){
+  if(email === 'admin@fce.com'){ alert('Admin silinə bilməz!'); return; }
+  if(!confirm('Bu istifadəçini silmək istədiyinizə əminsiniz?')) return;
+  const users = await dbQuery('users', { email: email });
+  if(users.length > 0) await dbDelete('users', users[0].id);
+  renderAdminUsers();
+}
+
+async function viewUserAnswers(email){
+  const users = await dbQuery('users', { email: email });
+  if(users.length === 0) return;
+  const user = users[0];
+  const scores = await dbQuery('scores', { user_id: user.id });
+  if(scores.length === 0){ alert('Bu istifadəçinin hələ nəticəsi yoxdur.'); return; }
+  let html = `<div style="padding:20px"><h4 style="margin-bottom:16px;color:#1a1a2e">${user.name} — Cavablar</h4>`;
+  for(const sc of scores){
     const exam = EXAMS[sc.exam_id];
-    const date = new Date(sc.created_at).toLocaleString('az-AZ');
-    html += `<div class="my-result-item">
-      <div class="result-info">
-        <strong>${exam?.title || sc.exam_id}</strong>
-        <div class="result-date">${date}</div>
-      </div>
-      <div class="result-score">${sc.total_points}/${sc.max_points} <span class="pct">(${sc.percent}%)</span></div>
-      <button onclick="viewMyResult('${sc.exam_id}')" style="padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">📜 Nəticəyə bax</button>
-    </div>`;
+    const answers = await dbQuery('answers', { score_id: sc.id });
+    html += `<div style="margin-bottom:16px;padding:12px;background:#fff;border-radius:8px;border:1px solid #e5e7eb"><strong>${exam?.title || sc.exam_id}</strong> — ${sc.total_points}/${sc.max_points} bal (${sc.percent}%) — Qiymət: ${sc.grade}<br><small>${new Date(sc.created_at).toLocaleString('az-AZ')}</small>`;
+    if(answers.length > 0){
+      html += `<div style="margin-top:10px;max-height:300px;overflow-y:auto">`;
+      answers.forEach(a => {
+        let answerDisplay = a.user_answer || '—';
+        if(a.user_image) answerDisplay = `<img src="${a.user_image}" style="max-height:40px;border:1px solid #e5e7eb;border-radius:4px" />`;
+        html += `<div style="display:flex;justify-content:space-between;padding:6px;border-bottom:1px solid #e5e7eb;font-size:13px"><span style="font-weight:700;min-width:60px">${a.part_id}#${a.question_num}</span><span style="flex:1">${answerDisplay}</span><span style="color:#16a34a;font-weight:700">${a.correct_answer} (${a.points}/${a.max_points})</span></div>`;
+      });
+      html += `</div>`;
+    }
+    html += `</div>`;
+  }
+  html += `</div>`;
+  const w = window.open('', '_blank', 'width=700,height=600');
+  w.document.write(`<html><head><title>${user.name} — Cavablar</title><style>body{font-family:Inter,sans-serif;padding:0;background:#f0f0eb}</style></head><body>${html}</body></html>`);
+}
+
+function renderAdminExams(){
+  const tbody = document.getElementById('examsTableBody');
+  tbody.innerHTML = '';
+  Object.values(EXAMS).forEach(exam => {
+    const totalQ = exam.parts.reduce((s, pid) => s + (MODULES[pid].questions?.length || MODULES[pid].gaps?.length || 0), 0);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><strong>${exam.id}</strong></td><td>${exam.title}</td><td>${exam.parts.length} Part</td><td>${totalQ} sual</td>`;
+    tbody.appendChild(tr);
   });
+}
+
+function renderUploadForm(){
+  const partId = document.getElementById('uploadPartSelect').value;
+  const mod = MODULES[partId];
+  const container = document.getElementById('uploadForm');
+  const items = mod.questions || mod.gaps || [];
+  let html = `<div style="margin-bottom:16px"><h4 style="color:#1a1a2e;margin-bottom:12px">${mod.moduleTitle} — ${items.length} sual</h4>`;
+  html += `<div style="display:grid;gap:12px">`;
+  items.forEach((item, idx) => {
+    const isQuestion = mod.questions && mod.questions.includes(item);
+    const isGap = mod.gaps && mod.gaps.includes(item);
+    html += `<div class="question-upload-card" id="qcard-${partId}-${item.num}" style="background:#f9fafb;border:2px solid #e5e7eb;border-radius:10px;padding:16px">`;
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><strong style="color:#1a1a2e">Sual ${item.num}</strong><span class="upload-status" id="status-${partId}-${item.num}" style="font-size:11px;padding:3px 8px;border-radius:10px;background:#e5e7eb;color:#6b7280">Boş</span></div>`;
+    if(isQuestion && item.options){
+      html += `<div style="margin-bottom:8px"><label style="font-size:12px;font-weight:600">Sual mətni:</label><input type="text" class="upload-input" id="qtext-${partId}-${item.num}" value="${item.text || ''}" placeholder="Sual mətnini yazın..." style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px;margin-top:4px"></div>`;
+      html += `<div style="margin-bottom:8px"><label style="font-size:12px;font-weight:600">Variantlar:</label>`;
+      Object.entries(item.options).forEach(([letter, text]) => {
+        html += `<div style="display:flex;gap:8px;margin-top:4px"><span style="font-weight:700;min-width:20px">${letter}.</span><input type="text" class="upload-input" id="qopt-${partId}-${item.num}-${letter}" value="${text}" style="flex:1;padding:6px;border:1px solid #e5e7eb;border-radius:4px"></div>`;
+      });
+      html += `</div>`;
+      html += `<div><label style="font-size:12px;font-weight:600">Düzgün cavab:</label><select class="upload-input" id="qans-${partId}-${item.num}" style="padding:6px;border:1px solid #e5e7eb;border-radius:4px;margin-left:8px"><option value="A" ${item.answer==='A'?'selected':''}>A</option><option value="B" ${item.answer==='B'?'selected':''}>B</option><option value="C" ${item.answer==='C'?'selected':''}>C</option><option value="D" ${item.answer==='D'?'selected':''}>D</option></select></div>`;
+    } else if(isGap){
+      html += `<div style="margin-bottom:8px"><label style="font-size:12px;font-weight:600">Düzgün cavab:</label><input type="text" class="upload-input" id="qans-${partId}-${item.num}" value="${item.answer || ''}" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px;margin-top:4px"></div>`;
+      if(item.given) html += `<div><label style="font-size:12px;font-weight:600">Verilən söz:</label><input type="text" class="upload-input" id="qgiven-${partId}-${item.num}" value="${item.given}" style="width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px;margin-top:4px"></div>`;
+    }
+    html += `<div style="margin-top:10px"><button onclick="saveQuestionUpload('${partId}',${item.num})" style="padding:8px 16px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600">💾 Yadda saxla</button></div>`;
+    html += `</div>`;
+  });
+  html += `</div></div>`;
+  container.innerHTML = html;
+}
+
+function saveQuestionUpload(partId, num){
+  const mod = MODULES[partId];
+  const items = mod.questions || mod.gaps || [];
+  const item = items.find(it => it.num === num);
+  if(!item) return;
+  const isQuestion = mod.questions && mod.questions.includes(item);
+  const isGap = mod.gaps && mod.gaps.includes(item);
+  if(isQuestion && item.options){
+    const text = document.getElementById(`qtext-${partId}-${num}`)?.value || '';
+    const answer = document.getElementById(`qans-${partId}-${num}`)?.value || '';
+    item.text = text;
+    item.answer = answer;
+    ['A','B','C','D'].forEach(letter => {
+      const optVal = document.getElementById(`qopt-${partId}-${num}-${letter}`)?.value || '';
+      item.options[letter] = optVal;
+    });
+  } else if(isGap){
+    const answer = document.getElementById(`qans-${partId}-${num}`)?.value || '';
+    item.answer = answer.toUpperCase();
+    if(item.given){
+      const given = document.getElementById(`qgiven-${partId}-${num}`)?.value || '';
+      item.given = given;
+    }
+  }
+  const statusEl = document.getElementById(`status-${partId}-${num}`);
+  if(statusEl){
+    statusEl.textContent = '✅ Yadda saxlanıldı';
+    statusEl.style.background = '#2563eb';
+    statusEl.style.color = '#fff';
+  }
+  const cardEl = document.getElementById(`qcard-${partId}-${num}`);
+  if(cardEl) cardEl.style.borderColor = '#2563eb';
+  document.getElementById('uploadStatus').textContent = `✅ Sual ${num} uğurla yadda saxlanıldı!`;
+  setTimeout(() => { document.getElementById('uploadStatus').textContent = ''; }, 3000);
+}
+
+function renderPointsExamSelect(){
+  const sel = document.getElementById('pointsExamSelect');
+  sel.innerHTML = '';
+  Object.values(EXAMS).forEach(exam => { sel.innerHTML += `<option value="${exam.id}">${exam.title}</option>`; });
+  renderPointsEditor();
+}
+
+async function renderPointsEditor(){
+  const examId = document.getElementById('pointsExamSelect').value;
+  const exam = EXAMS[examId];
+  const pointsData = await dbQuery('exam_points', { exam_id: examId });
+  const pointsMap = {};
+  pointsData.forEach(p => { if(!pointsMap[p.part_id]) pointsMap[p.part_id] = {}; pointsMap[p.part_id][p.question_num] = p.points; });
+  const container = document.getElementById('pointsEditor');
+  let html = '';
+  exam.parts.forEach(pid => {
+    const m = MODULES[pid];
+    const items = m.questions || m.gaps || [];
+    if(!pointsMap[pid]) pointsMap[pid] = {};
+    html += `<div style="margin-bottom:20px"><h4 style="font-family:'Merriweather',serif;color:#1a1a2e;margin-bottom:12px">Part ${m.moduleNum} — ${m.moduleTitle}</h4><table class="exams-table"><thead><tr><th>Sual №</th><th>Düzgün cavab</th><th>Bal</th></tr></thead><tbody>`;
+    items.forEach(it => {
+      const pt = pointsMap[pid][it.num] ?? 1;
+      html += `<tr><td><strong>${it.num}</strong></td><td>${it.answer}</td><td><input type="number" class="points-input" data-pid="${pid}" data-num="${it.num}" value="${pt}" min="0" max="10" step="0.5"></td></tr>`;
+    });
+    html += `</tbody></table><button class="save-points-btn" onclick="savePointsForPart('${examId}','${pid}')">💾 Bütün Balları Yadda Saxla</button></div>`;
+  });
+  container.innerHTML = html;
+}
+
+async function savePointsForPart(examId, pid){
+  const inputs = document.querySelectorAll(`.points-input[data-pid="${pid}"]`);
+  for(const inp of inputs){
+    const num = parseInt(inp.dataset.num);
+    const val = parseFloat(inp.value) || 0;
+    const existing = await dbQuery('exam_points', { exam_id: examId, part_id: pid, question_num: num });
+    if(existing.length > 0) await dbUpdate('exam_points', existing[0].id, { points: val });
+    else await dbInsert('exam_points', { exam_id: examId, part_id: pid, question_num: num, points: val });
+  }
+  alert('✅ Ballar uğurla yadda saxlanıldı!');
+}
+
+async function renderStudentResultsList(){
+  const container = document.getElementById('studentResultsList');
+  const students = await dbQuery('users', { role: 'student' });
+  if(students.length === 0){ container.innerHTML = '<div class="no-data">Heç bir şagird yoxdur</div>'; return; }
+  let html = '<div style="display:grid;gap:16px">';
+  for(const user of students){
+    const scores = await dbQuery('scores', { user_id: user.id });
+    const totalPoints = scores.reduce((sum, s) => sum + (s.total_points || 0), 0);
+    const maxPoints = scores.reduce((sum, s) => sum + (s.max_points || 0), 0);
+    html += `<div style="background:#f9fafb;padding:16px;border-radius:10px;border-left:4px solid #2563eb"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><strong style="font-size:16px">${user.name}</strong><span style="font-size:13px;color:#666">${user.email}</span></div><div style="font-size:13px;color:#666;margin-bottom:8px">Tamamlanan imtahan: ${scores.length} • Ümumi bal: <strong style="color:#1a1a2e">${totalPoints}/${maxPoints}</strong></div>`;
+    if(scores.length > 0){
+      html += `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">`;
+      scores.forEach(sc => { const exam = EXAMS[sc.exam_id]; html += `<button class="btn-sm btn-view" onclick="viewCarnetFromAdmin('${user.email}','${sc.exam_id}')">📜 ${exam?.title || sc.exam_id} — ${sc.total_points}/${sc.max_points} (${sc.percent}%)</button>`; });
+      html += `</div>`;
+    } else { html += `<div style="margin-top:10px;font-size:13px;color:#9ca3af;font-style:italic">Hələ nəticə yoxdur</div>`; }
+    html += `</div>`;
+  }
   html += '</div>';
   container.innerHTML = html;
 }
 
-async function viewMyResult(examId){
-  currentExamId = examId;
-  document.getElementById('studentDashboard').classList.add('hidden');
-  document.getElementById('carnetPage').classList.remove('hidden');
-  hideExamNavButtons();
-  await showCarnet();
+async function viewCarnetFromAdmin(email, examId){
+  const users = await dbQuery('users', { email: email });
+  if(users.length === 0) return;
+  const user = users[0];
+  const scores = await dbQuery('scores', { user_id: user.id, exam_id: examId });
+  if(scores.length === 0) return;
+  const score = scores[0];
+  let answers = await dbQuery('answers', { score_id: score.id });
+  if(!answers || answers.length === 0) answers = [];
+  const exam = EXAMS[examId];
+  const date = new Date(score.created_at).toLocaleString('az-AZ');
+  const isMarker = currentUser && currentUser.role === 'marker';
+  const isAdmin = currentUser && currentUser.role === 'admin';
+  const canEdit = isMarker || isAdmin;
+  let html = `<div style="padding:20px"><div style="background:#fff;border-radius:16px;padding:30px;box-shadow:0 4px 20px rgba(0,0,0,0.1)"><div style="text-align:center;border-bottom:3px double #1a1a2e;padding-bottom:20px;margin-bottom:24px"><div style="font-size:12px;color:#6b7280;letter-spacing:2px;text-transform:uppercase">CAMBRIDGE FCE PLATFORM — ${canEdit ? 'Marker/Admin' : 'Admin'} baxış</div><h1 style="font-family:Merriweather,serif;color:#1a1a2e">📜 NƏTİCƏ VƏRƏQİ</h1><div style="font-size:14px;color:#6b7280;margin-top:6px">${exam.title}</div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;padding:16px;background:#f9fafb;border-radius:10px"><div><strong>Ad:</strong> ${user.name}</div><div><strong>Email:</strong> ${user.email}</div><div><strong>Tarix:</strong> ${date}</div><div><strong>Nəticə:</strong> <span id="carnetTotalDisplay">${score.total_points}/${score.max_points} (${score.percent}%)</span></div></div><div style="background:linear-gradient(135deg,#1a1a2e,#2d2d4e);color:#fff;padding:24px;border-radius:12px;text-align:center;margin-bottom:24px"><div style="font-size:14px;opacity:0.8;margin-bottom:8px">Yekun Nəticə</div><div id="carnetGradeBadge" style="display:inline-block;padding:16px 32px;border-radius:12px;font-size:28px;font-weight:900;background:#dc2626;color:#fff">${score.total_points}/${score.max_points} (${score.percent}%)</div></div><table style="width:100%;border-collapse:collapse" id="carnetTable"><thead><tr><th style="padding:12px;text-align:left;background:#1a1a2e;color:#fbbf24;font-weight:700">Part</th><th style="padding:12px;text-align:left;background:#1a1a2e;color:#fbbf24;font-weight:700">Sual</th><th style="padding:12px;text-align:left;background:#1a1a2e;color:#fbbf24;font-weight:700">Cavab</th><th style="padding:12px;text-align:left;background:#1a1a2e;color:#fbbf24;font-weight:700">Düzgün</th><th style="padding:12px;text-align:left;background:#1a1a2e;color:#fbbf24;font-weight:700">Status</th><th style="padding:12px;text-align:left;background:#1a1a2e;color:#fbbf24;font-weight:700">Bal</th></tr></thead><tbody>`;
+  answers.forEach((a, idx) => {
+    const m = MODULES[a.part_id];
+    if(!m) return;
+    let answerDisplay = a.user_answer || '—';
+    if(a.user_image) answerDisplay = `<img src="${a.user_image}" style="max-height:50px;border:1px solid #e5e7eb;border-radius:4px" />`;
+    html += `<tr style="background:${a.is_correct ? '#dcfce7' : '#fee2e2'}" id="reviewRow_${idx}"><td style="padding:12px;border-bottom:1px solid #e5e7eb">Part ${m.moduleNum}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.question_num}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${answerDisplay}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.correct_answer || '—'}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.is_correct ? '✅ Düzgün' : '❌ Səhv'}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">`;
+    if(canEdit){
+      html += `<input type="number" class="marker-score-input" data-idx="${idx}" data-answer-id="${a.id}" value="${a.points || 0}" min="0" max="${a.max_points || 1}" step="0.5" style="width:70px;padding:6px;border:2px solid #e5e7eb;border-radius:6px;text-align:center;font-weight:700" onchange="updateReviewScoreInline(this)"><span style="font-size:11px;color:#666">/${a.max_points || 1}</span>`;
+    } else {
+      html += `<strong>${a.points || 0}/${a.max_points || 1}</strong>`;
+    }
+    html += `</td></tr>`;
+  });
+  html += `</tbody></table>`;
+  if(canEdit){
+    html += `<div style="margin-top:20px;text-align:center"><button onclick="recalculateAndSaveScoreInline('${email}','${examId}','${score.id}')" style="padding:14px 32px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">💾 Balları Yenilə və Yadda Saxla</button><p style="font-size:12px;color:#666;margin-top:8px">⚠️ Diqqət: Bu əməliyyat şagirdin ümumi balını və qiymətini yeniləyəcək.</p></div>`;
+  }
+  html += `</div></div>`;
+  const w = window.open('', '_blank', 'width=900,height=800');
+  w.document.write(`<html><head><title>NƏTİCƏ VƏRƏQİ — ${user.name}</title><style>body{font-family:'Inter',sans-serif;padding:0;background:#f0f0eb}</style></head><body>${html}</body></html>`);
+  w.document.close();
+}
+
+async function updateReviewScoreInline(input){
+  const idx = parseInt(input.dataset.idx);
+  const answerId = input.dataset.answerId;
+  const newScore = parseFloat(input.value) || 0;
+  const maxPt = parseFloat(input.max) || 1;
+  if(newScore > maxPt){ alert(`Maksimum bal ${maxPt}-dir!`); input.value = 0; return; }
+  if(newScore < 0){ alert(`Bal mənfi ola bilməz!`); input.value = 0; return; }
+  const isCorrect = (newScore === maxPt);
+  await dbUpdate('answers', answerId, { points: newScore, is_correct: isCorrect });
+  const row = input.closest('tr');
+  if(row){
+    row.style.background = isCorrect ? '#dcfce7' : '#fee2e2';
+    const statusCell = row.cells[4];
+    if(statusCell) statusCell.textContent = isCorrect ? '✅ Düzgün' : '❌ Səhv';
+  }
+}
+
+async function recalculateAndSaveScoreInline(email, examId, scoreId){
+  const answers = await dbQuery('answers', { score_id: scoreId });
+  let totalEarned = 0, totalMax = 0, correctCount = 0;
+  answers.forEach(a => {
+    totalMax += (a.max_points || 1);
+    totalEarned += (a.points || 0);
+    if(a.is_correct) correctCount++;
+  });
+  const pct = totalMax > 0 ? Math.round((totalEarned / totalMax) * 100) : 0;
+  let grade, gradeText;
+  if(pct >= 90){ grade = 5; gradeText = 'Əla'; }
+  else if(pct >= 75){ grade = 4; gradeText = 'Yaxşı'; }
+  else if(pct >= 60){ grade = 3; gradeText = 'Orta'; }
+  else if(pct >= 40){ grade = 2; gradeText = 'Qənaətbəxş'; }
+  else { grade = 1; gradeText = 'Qeyri-qənaətbəxş'; }
+  await dbUpdate('scores', scoreId, {
+    total_points: totalEarned,
+    max_points: totalMax,
+    percent: pct,
+    correct_count: correctCount,
+    grade: grade,
+    grade_text: gradeText,
+    marker_edited: true,
+    marker_name: currentUser?.name || 'Marker',
+    marker_edited_at: new Date().toISOString()
+  });
+  try {
+    const totalDisplay = document.getElementById('carnetTotalDisplay');
+    if(totalDisplay) totalDisplay.textContent = `${totalEarned}/${totalMax} (${pct}%)`;
+    const gradeBadge = document.getElementById('carnetGradeBadge');
+    if(gradeBadge){
+      const colors = {5:'#16a34a', 4:'#2563eb', 3:'#fbbf24', 2:'#f97316', 1:'#dc2626'};
+      gradeBadge.style.background = colors[grade] || '#dc2626';
+      gradeBadge.style.color = grade === 3 ? '#1a1a2e' : '#fff';
+      gradeBadge.textContent = `${totalEarned}/${totalMax} (${pct}%)`;
+    }
+  } catch(e){ console.error('UI yeniləmə xətası:', e); }
+  alert(`✅ Yaddaşa verildi!\n\nYeni bal: ${totalEarned}/${totalMax} (${pct}%)\nQiymət: ${grade} (${gradeText})`);
+}
+
+function renderMarkerUserSelect(){
+  const sel = document.getElementById('markerUserSelect');
+  sel.innerHTML = '<option value="">— Şagird seçin —</option>';
+  dbQuery('users', { role: 'student' }).then(students => { students.forEach(u => { sel.innerHTML += `<option value="${u.email}">${u.name} (${u.email})</option>`; }); });
+}
+
+async function makeMarker(){
+  const email = document.getElementById('markerUserSelect').value;
+  if(!email){ alert('Zəhmət olmasa şagird seçin'); return; }
+  const users = await dbQuery('users', { email: email });
+  if(users.length === 0){ alert('İstifadəçi tapılmadı'); return; }
+  await dbUpdate('users', users[0].id, { role: 'marker' });
+  alert(`✅ ${users[0].name} marker təyin olundu!`);
+  renderMarkerUserSelect(); renderMarkersList(); renderAdminUsers();
+}
+
+async function renderMarkersList(){
+  const container = document.getElementById('markersList');
+  const markers = await dbQuery('users', { role: 'marker' });
+  if(markers.length === 0){ container.innerHTML = '<div class="no-data">Heç bir marker yoxdur</div>'; return; }
+  let html = '<h4 style="margin-bottom:12px">Aktiv Markerlər:</h4><div style="display:grid;gap:8px">';
+  markers.forEach(m => { html += `<div style="background:#fef3c7;padding:12px;border-radius:8px;display:flex;justify-content:space-between;align-items:center"><span><strong>${m.name}</strong> <span style="font-size:12px;color:#666">(${m.email})</span></span><button class="btn-sm btn-del" onclick="removeMarker('${m.email}')">Markerlikdən Çıxar</button></div>`; });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+async function removeMarker(email){
+  if(!confirm('Bu istifadəçini markerlikdən çıxarmaq istədiyinizə əminsiniz?')) return;
+  const users = await dbQuery('users', { email: email });
+  if(users.length === 0) return;
+  await dbUpdate('users', users[0].id, { role: 'student' });
+  renderMarkersList(); renderMarkerUserSelect(); renderAdminUsers();
 }
 
 // ==================== MARKER DASHBOARD ====================
 async function showMarkerDashboard(){
+  document.getElementById('examListPage').classList.add('hidden');
   document.getElementById('examPage').classList.add('hidden');
   document.getElementById('carnetPage').classList.add('hidden');
   document.getElementById('adminPage').classList.add('hidden');
-  document.getElementById('studentDashboard').classList.add('hidden');
   document.getElementById('markerDashboard').classList.remove('hidden');
   hideExamNavButtons();
   document.getElementById('markerName').textContent = currentUser.name;
@@ -256,50 +553,15 @@ async function renderMarkerStudentList(){
   container.innerHTML = html;
 }
 
-// ==================== EXAM NAV BUTTONS ====================
-function renderExamNavButtons(){
-  const container = document.getElementById('examNavButtons');
-  if(!container) return;
-  if(!currentExamId || !EXAMS[currentExamId]){ container.innerHTML = ''; container.classList.remove('show'); return; }
-  let html = '';
-  EXAMS[currentExamId].parts.forEach((pid) => {
-    const m = MODULES[pid];
-    const isActive = pid === currentModuleId;
-    html += `<button class="part-nav-btn ${isActive ? 'active' : ''}" onclick="goToPart('${pid}')">Part ${m.moduleNum}</button>`;
-  });
-  html += `<button class="result-nav-btn btn-finish-exam" onclick="finishExam()">🏁 İmtahanı bitir</button>`;
-  html += `<button class="result-nav-btn" onclick="showCarnetFromCurrent()">📜 Nəticəyə bax</button>`;
-  container.innerHTML = html;
-  container.classList.add('show');
-}
-
-function finishExam(){
-  if(!confirm('İmtahanı bitirmək istədiyinizə əminsiniz? Cavablarınız yadda saxlanılacaq.')) return;
-  showFinalResults();
-}
-
-function hideExamNavButtons(){ const container = document.getElementById('examNavButtons'); if(container){ container.innerHTML = ''; container.classList.remove('show'); } }
-
-function goToPart(pid){
-  if(!currentExamId || !EXAMS[currentExamId]) return;
-  if(!EXAMS[currentExamId].parts.includes(pid)) return;
-  if(pid === currentModuleId) return;
-  currentModuleId = pid; currentQ = 0;
-  renderLayout(); renderText(); renderQuestion(); renderExamNavButtons();
-}
-
-function showCarnetFromCurrent(){
-  if(!currentUser.scores || Object.keys(currentUser.scores).length === 0){ alert('Hələ nəticə yoxdur! İmtahanı tamamlayın.'); return; }
-  let examId = currentExamId;
-  if(!examId || !currentUser.scores[examId]){ const scoreKeys = Object.keys(currentUser.scores); examId = scoreKeys[scoreKeys.length - 1]; }
-  currentExamId = examId;
-  showCarnet();
-}
-
 // ==================== EXAM LIST ====================
 async function showExamList(){
+  document.getElementById('examPage').classList.add('hidden');
+  document.getElementById('carnetPage').classList.add('hidden');
+  document.getElementById('adminPage').classList.add('hidden');
+  document.getElementById('markerDashboard').classList.add('hidden');
+  document.getElementById('examListPage').classList.remove('hidden');
+  hideExamNavButtons();
   const grid = document.getElementById('examGrid');
-  if(!grid) return;
   grid.innerHTML = '';
   const scores = await dbQuery('scores', { user_id: currentUser.id });
   const scoresMap = {};
@@ -325,6 +587,14 @@ async function showExamList(){
   });
 }
 
+async function viewMyResult(examId){
+  currentExamId = examId;
+  document.getElementById('examListPage').classList.add('hidden');
+  document.getElementById('carnetPage').classList.remove('hidden');
+  hideExamNavButtons();
+  await showCarnet();
+}
+
 function startExam(examId){
   if(currentUser.scores && currentUser.scores[examId]){
     alert('⚠️ Siz bu imtahanı artıq tamamlamısınız. Hər şagird bir imtahana yalnız 1 dəfə girə bilər.');
@@ -333,7 +603,7 @@ function startExam(examId){
   currentExamId = examId;
   currentModuleId = EXAMS[examId].parts[0];
   currentQ = 0; seconds = 0;
-  document.getElementById('studentDashboard').classList.add('hidden');
+  document.getElementById('examListPage').classList.add('hidden');
   document.getElementById('examPage').classList.remove('hidden');
   document.getElementById('carnetPage').classList.add('hidden');
   renderLayout(); renderText(); renderQuestion(); startTimer(); renderExamNavButtons();
@@ -521,7 +791,7 @@ function renderQuestion(){
     let html = `<div class="q-card"><div class="q-card-header"><div class="q-number">${g.num}</div><div class="q-title">${currentModuleId==='part2' ? 'Boşluğu doldurun (1 söz)' : 'Verilən sözdən yeni söz düzəldin'}</div></div><div class="q-context">${ctx}</div>`;
     if(currentModuleId==='part3' && g.given) html += `<div class="q-word-given"><span class="kw-label">Verilən söz:</span>${g.given}</div>`;
     html += `<div class="q-input-area"><label>Cavabınız</label><input type="text" class="q-main-input" id="mainInput" value="${textVal || ''}" placeholder="cavabı yazın..." autocomplete="off" spellcheck="false" oninput="onInput(this.value)" onkeydown="onKeydown(event)"><div class="q-hint-text">${currentModuleId==='part2' ? '💡 Yalnız 1 söz yazın' : '💡 Verilən sözdən kök dəyişərək yeni söz düzəldin'}</div>`;
-    html += `<button class="btn-handwriting" onclick="openWritingCanvas(${g.num})">✍️ Əl ilə yaz</button>`;
+    html += `<button class="btn-handwriting" onclick="openWritingCanvas(${g.num})" style="margin-top:10px;padding:8px 16px;background:#fbbf24;color:#1a1a2e;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">✍️ Əl ilə yaz</button>`;
     if(imageVal) html += `<div style="margin-top:10px"><img src="${imageVal}" style="max-width:100%;border:2px solid #e5e7eb;border-radius:8px" /><button onclick="clearHandwriting(${g.num})" style="margin-top:6px;padding:4px 10px;background:#dc2626;color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer">Sil</button></div>`;
     html += `</div></div>`;
     container.innerHTML = html;
@@ -532,7 +802,7 @@ function renderQuestion(){
     const textVal = typeof val === 'object' ? val.text : val;
     const imageVal = typeof val === 'object' ? val.image : null;
     let html = `<div class="q-card"><div class="q-card-header"><div class="q-number">${q.num}</div><div class="q-title">İkinci cümləni tamamlayın</div></div><div class="q-context" style="font-style:italic;">"${q.original}"</div><div style="text-align:center;margin-bottom:16px;"><span style="display:inline-block;background:#1a1a2e;color:#fbbf24;padding:4px 14px;border-radius:6px;font-weight:700;font-size:15px;letter-spacing:1px;">${q.keyword}</span></div><div class="q-input-area"><label>Cavabınız (2-5 söz, böyük hərflərlə)</label><input type="text" class="q-main-input" id="mainInput" value="${textVal || ''}" placeholder="cavabı yazın..." autocomplete="off" spellcheck="false" oninput="onInput(this.value)" onkeydown="onKeydown(event)"><div class="q-hint-text">💡 2-5 söz, böyük hərflərlə</div>`;
-    html += `<button class="btn-handwriting" onclick="openWritingCanvas(${q.num})">✍️ Əl ilə yaz</button>`;
+    html += `<button class="btn-handwriting" onclick="openWritingCanvas(${q.num})" style="margin-top:10px;padding:8px 16px;background:#fbbf24;color:#1a1a2e;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">✍️ Əl ilə yaz</button>`;
     if(imageVal) html += `<div style="margin-top:10px"><img src="${imageVal}" style="max-width:100%;border:2px solid #e5e7eb;border-radius:8px" /><button onclick="clearHandwriting(${q.num})" style="margin-top:6px;padding:4px 10px;background:#dc2626;color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer">Sil</button></div>`;
     html += `</div><div style="background:#f9fafb;padding:12px;border-radius:8px;font-size:13px;color:#555;line-height:1.6;margin-bottom:12px;">${q.sentenceStart} <strong style="color:#1a1a2e;">[___]</strong> ${q.sentenceEnd}</div></div>`;
     container.innerHTML = html;
@@ -844,7 +1114,6 @@ async function showFinalResults(){
 async function showCarnet(){
   document.getElementById('resultsScreen').classList.remove('show');
   document.getElementById('examPage').classList.add('hidden');
-  document.getElementById('studentDashboard').classList.add('hidden');
   document.getElementById('carnetPage').classList.remove('hidden');
   hideExamNavButtons();
   let examId = currentExamId;
@@ -896,53 +1165,6 @@ async function showCarnet(){
   document.getElementById('carnetPage').innerHTML = html;
 }
 
-async function updateReviewScoreInline(input){
-  const idx = parseInt(input.dataset.idx);
-  const answerId = input.dataset.answerId;
-  const newScore = parseFloat(input.value) || 0;
-  const maxPt = parseFloat(input.max) || 1;
-  if(newScore > maxPt){ alert(`Maksimum bal ${maxPt}-dir!`); input.value = 0; return; }
-  if(newScore < 0){ alert(`Bal mənfi ola bilməz!`); input.value = 0; return; }
-  const isCorrect = (newScore === maxPt);
-  await dbUpdate('answers', answerId, { points: newScore, is_correct: isCorrect });
-  const row = input.closest('tr');
-  if(row){
-    row.style.background = isCorrect ? '#dcfce7' : '#fee2e2';
-    const statusCell = row.cells[4];
-    if(statusCell) statusCell.textContent = isCorrect ? '✅ Düzgün' : '❌ Səhv';
-  }
-}
-
-async function recalculateAndSaveScoreInline(email, examId, scoreId){
-  const answers = await dbQuery('answers', { score_id: scoreId });
-  let totalEarned = 0, totalMax = 0, correctCount = 0;
-  answers.forEach(a => {
-    totalMax += (a.max_points || 1);
-    totalEarned += (a.points || 0);
-    if(a.is_correct) correctCount++;
-  });
-  const pct = totalMax > 0 ? Math.round((totalEarned / totalMax) * 100) : 0;
-  let grade, gradeText;
-  if(pct >= 90){ grade = 5; gradeText = 'Əla'; }
-  else if(pct >= 75){ grade = 4; gradeText = 'Yaxşı'; }
-  else if(pct >= 60){ grade = 3; gradeText = 'Orta'; }
-  else if(pct >= 40){ grade = 2; gradeText = 'Qənaətbəxş'; }
-  else { grade = 1; gradeText = 'Qeyri-qənaətbəxş'; }
-  await dbUpdate('scores', scoreId, {
-    total_points: totalEarned,
-    max_points: totalMax,
-    percent: pct,
-    correct_count: correctCount,
-    grade: grade,
-    grade_text: gradeText,
-    marker_edited: true,
-    marker_name: currentUser?.name || 'Marker',
-    marker_edited_at: new Date().toISOString()
-  });
-  alert(`✅ Yaddaşa verildi!\n\nYeni bal: ${totalEarned}/${totalMax} (${pct}%)\nQiymət: ${grade} (${gradeText})`);
-  showCarnet();
-}
-
 function backToExams(){
   document.getElementById('examPage').classList.add('hidden');
   document.getElementById('carnetPage').classList.add('hidden');
@@ -950,9 +1172,48 @@ function backToExams(){
   document.getElementById('markerDashboard').classList.add('hidden');
   document.getElementById('resultsScreen')?.classList.remove('show');
   hideExamNavButtons();
-  if(currentUser.role === 'student') showStudentDashboard();
-  else if(currentUser.role === 'admin') showAdmin();
+  if(currentUser.role === 'admin') showAdmin();
   else if(currentUser.role === 'marker') showMarkerDashboard();
+  else showExamList();
+}
+
+function renderExamNavButtons(){
+  const container = document.getElementById('examNavButtons');
+  if(!container) return;
+  if(!currentExamId || !EXAMS[currentExamId]){ container.innerHTML = ''; container.classList.remove('show'); return; }
+  let html = '';
+  EXAMS[currentExamId].parts.forEach((pid) => {
+    const m = MODULES[pid];
+    const isActive = pid === currentModuleId;
+    html += `<button class="part-nav-btn ${isActive ? 'active' : ''}" onclick="goToPart('${pid}')">Part ${m.moduleNum}</button>`;
+  });
+  html += `<button class="result-nav-btn btn-finish-exam" onclick="finishExam()">🏁 İmtahanı bitir</button>`;
+  html += `<button class="result-nav-btn" onclick="showCarnetFromCurrent()">📜 Nəticəyə bax</button>`;
+  container.innerHTML = html;
+  container.classList.add('show');
+}
+
+function finishExam(){
+  if(!confirm('İmtahanı bitirmək istədiyinizə əminsiniz? Cavablarınız yadda saxlanılacaq.')) return;
+  showFinalResults();
+}
+
+function hideExamNavButtons(){ const container = document.getElementById('examNavButtons'); if(container){ container.innerHTML = ''; container.classList.remove('show'); } }
+
+function goToPart(pid){
+  if(!currentExamId || !EXAMS[currentExamId]) return;
+  if(!EXAMS[currentExamId].parts.includes(pid)) return;
+  if(pid === currentModuleId) return;
+  currentModuleId = pid; currentQ = 0;
+  renderLayout(); renderText(); renderQuestion(); renderExamNavButtons();
+}
+
+function showCarnetFromCurrent(){
+  if(!currentUser.scores || Object.keys(currentUser.scores).length === 0){ alert('Hələ nəticə yoxdur! İmtahanı tamamlayın.'); return; }
+  let examId = currentExamId;
+  if(!examId || !currentUser.scores[examId]){ const scoreKeys = Object.keys(currentUser.scores); examId = scoreKeys[scoreKeys.length - 1]; }
+  currentExamId = examId;
+  showCarnet();
 }
 
 function startTimer(){
@@ -966,230 +1227,6 @@ function startTimer(){
   }, 1000);
 }
 function stopTimer(){ clearInterval(timerInterval); }
-
-// ==================== ADMIN ====================
-async function showAdmin(){
-  document.getElementById('examPage').classList.add('hidden');
-  document.getElementById('carnetPage').classList.add('hidden');
-  document.getElementById('studentDashboard').classList.add('hidden');
-  document.getElementById('markerDashboard').classList.add('hidden');
-  document.getElementById('adminPage').classList.remove('hidden');
-  hideExamNavButtons();
-  await renderAdminUsers();
-  renderAdminExams();
-  renderPointsExamSelect();
-  await renderStudentResultsList();
-  renderMarkersList();
-  renderMarkerUserSelect();
-}
-
-function switchAdminTab(tab){
-  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
-  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
-  document.getElementById('admin' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
-  if(tab === 'users') renderAdminUsers();
-  if(tab === 'exams') renderAdminExams();
-  if(tab === 'points') renderPointsExamSelect();
-  if(tab === 'results') renderStudentResultsList();
-  if(tab === 'markers'){ renderMarkersList(); renderMarkerUserSelect(); }
-}
-
-async function renderAdminUsers(){
-  const tbody = document.getElementById('usersTableBody');
-  const users = await dbQuery('users');
-  tbody.innerHTML = '';
-  for(const u of users){
-    const scores = await dbQuery('scores', { user_id: u.id });
-    const completed = scores.length;
-    const totalEarned = scores.reduce((sum, s) => sum + (s.total_points || 0), 0);
-    const totalMax = scores.reduce((sum, s) => sum + (s.max_points || 0), 0);
-    const balText = completed > 0 ? `${totalEarned}/${totalMax}` : '—';
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${u.name}</td><td>${u.email}</td><td><span class="user-role ${u.role==='admin' ? 'role-admin' : u.role==='marker' ? 'role-marker' : 'role-student'}">${u.role}</span></td><td>${completed} imtahan</td><td><strong style="color:#1a1a2e">${balText}</strong></td><td>${u.role !== 'admin' ? `<button class="btn-sm btn-view" onclick="viewUserAnswers('${u.email}')">Cavablar</button><button class="btn-sm btn-del" onclick="deleteUser('${u.email}')">Sil</button>` : ''}</td>`;
-    tbody.appendChild(tr);
-  }
-}
-
-async function deleteUser(email){
-  if(email === 'admin@fce.com'){ alert('Admin silinə bilməz!'); return; }
-  if(!confirm('Bu istifadəçini silmək istədiyinizə əminsiniz?')) return;
-  const users = await dbQuery('users', { email: email });
-  if(users.length > 0) await dbDelete('users', users[0].id);
-  renderAdminUsers();
-}
-
-async function viewUserAnswers(email){
-  const users = await dbQuery('users', { email: email });
-  if(users.length === 0) return;
-  const user = users[0];
-  const scores = await dbQuery('scores', { user_id: user.id });
-  if(scores.length === 0){ alert('Bu istifadəçinin hələ nəticəsi yoxdur.'); return; }
-  let html = `<div style="padding:20px"><h4 style="margin-bottom:16px;color:#1a1a2e">${user.name} — Cavablar</h4>`;
-  for(const sc of scores){
-    const exam = EXAMS[sc.exam_id];
-    const answers = await dbQuery('answers', { score_id: sc.id });
-    html += `<div style="margin-bottom:16px;padding:12px;background:#fff;border-radius:8px;border:1px solid #e5e7eb"><strong>${exam?.title || sc.exam_id}</strong> — ${sc.total_points}/${sc.max_points} bal (${sc.percent}%) — Qiymət: ${sc.grade}<br><small>${new Date(sc.created_at).toLocaleString('az-AZ')}</small>`;
-    if(answers.length > 0){
-      html += `<div style="margin-top:10px;max-height:300px;overflow-y:auto">`;
-      answers.forEach(a => {
-        let answerDisplay = a.user_answer || '—';
-        if(a.user_image) answerDisplay = `<img src="${a.user_image}" style="max-height:40px;border:1px solid #e5e7eb;border-radius:4px" />`;
-        html += `<div style="display:flex;justify-content:space-between;padding:6px;border-bottom:1px solid #e5e7eb;font-size:13px"><span style="font-weight:700;min-width:60px">${a.part_id}#${a.question_num}</span><span style="flex:1">${answerDisplay}</span><span style="color:#16a34a;font-weight:700">${a.correct_answer} (${a.points}/${a.max_points})</span></div>`;
-      });
-      html += `</div>`;
-    }
-    html += `</div>`;
-  }
-  html += `</div>`;
-  const w = window.open('', '_blank', 'width=700,height=600');
-  w.document.write(`<html><head><title>${user.name} — Cavablar</title><style>body{font-family:Inter,sans-serif;padding:0;background:#f0f0eb}</style></head><body>${html}</body></html>`);
-}
-
-function renderAdminExams(){
-  const container = document.getElementById('examsList');
-  let html = '<div style="display:grid;gap:12px">';
-  Object.values(EXAMS).forEach(exam => {
-    const totalQ = exam.parts.reduce((s, pid) => s + (MODULES[pid].questions?.length || MODULES[pid].gaps?.length || 0), 0);
-    html += `<div style="background:#f9fafb;padding:14px;border-radius:10px;border-left:4px solid #2563eb"><div style="display:flex;justify-content:space-between;align-items:center"><strong style="font-size:15px">${exam.icon} ${exam.title}</strong><span style="font-size:12px;color:#666">${exam.parts.length} Part • ${totalQ} sual</span></div><div style="font-size:12px;color:#666;margin-top:4px">${exam.description}</div></div>`;
-  });
-  html += '</div>';
-  container.innerHTML = html;
-}
-
-function renderPointsExamSelect(){
-  const sel = document.getElementById('pointsExamSelect');
-  sel.innerHTML = '';
-  Object.values(EXAMS).forEach(exam => { sel.innerHTML += `<option value="${exam.id}">${exam.title}</option>`; });
-  renderPointsEditor();
-}
-
-async function renderPointsEditor(){
-  const examId = document.getElementById('pointsExamSelect').value;
-  const exam = EXAMS[examId];
-  const pointsData = await dbQuery('exam_points', { exam_id: examId });
-  const pointsMap = {};
-  pointsData.forEach(p => { if(!pointsMap[p.part_id]) pointsMap[p.part_id] = {}; pointsMap[p.part_id][p.question_num] = p.points; });
-  const container = document.getElementById('pointsEditor');
-  let html = '';
-  exam.parts.forEach(pid => {
-    const m = MODULES[pid];
-    const items = m.questions || m.gaps || [];
-    if(!pointsMap[pid]) pointsMap[pid] = {};
-    html += `<div style="margin-bottom:20px"><h4 style="font-family:'Merriweather',serif;color:#1a1a2e;margin-bottom:12px">Part ${m.moduleNum} — ${m.moduleTitle}</h4><table class="exams-table"><thead><tr><th>Sual №</th><th>Düzgün cavab</th><th>Bal</th></tr></thead><tbody>`;
-    items.forEach(it => {
-      const pt = pointsMap[pid][it.num] ?? 1;
-      html += `<tr><td><strong>${it.num}</strong></td><td>${it.answer}</td><td><input type="number" class="points-input" data-pid="${pid}" data-num="${it.num}" value="${pt}" min="0" max="10" step="0.5"></td></tr>`;
-    });
-    html += `</tbody></table><button class="save-points-btn" onclick="savePointsForPart('${examId}','${pid}')">💾 Balları Yadda Saxla</button></div>`;
-  });
-  container.innerHTML = html;
-}
-
-async function savePointsForPart(examId, pid){
-  const inputs = document.querySelectorAll(`.points-input[data-pid="${pid}"]`);
-  for(const inp of inputs){
-    const num = parseInt(inp.dataset.num);
-    const val = parseFloat(inp.value) || 0;
-    const existing = await dbQuery('exam_points', { exam_id: examId, part_id: pid, question_num: num });
-    if(existing.length > 0) await dbUpdate('exam_points', existing[0].id, { points: val });
-    else await dbInsert('exam_points', { exam_id: examId, part_id: pid, question_num: num, points: val });
-  }
-  alert('✅ Ballar uğurla yadda saxlanıldı!');
-}
-
-async function renderStudentResultsList(){
-  const container = document.getElementById('studentResultsList');
-  const students = await dbQuery('users', { role: 'student' });
-  if(students.length === 0){ container.innerHTML = '<div class="no-data">Heç bir şagird yoxdur</div>'; return; }
-  let html = '<div style="display:grid;gap:12px">';
-  for(const user of students){
-    const scores = await dbQuery('scores', { user_id: user.id });
-    const totalPoints = scores.reduce((sum, s) => sum + (s.total_points || 0), 0);
-    const maxPoints = scores.reduce((sum, s) => sum + (s.max_points || 0), 0);
-    html += `<div style="background:#f9fafb;padding:14px;border-radius:10px;border-left:4px solid #2563eb"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><strong style="font-size:14px">${user.name}</strong><span style="font-size:12px;color:#666">${user.email}</span></div><div style="font-size:12px;color:#666;margin-bottom:6px">Tamamlanan imtahan: ${scores.length} • Ümumi bal: <strong style="color:#1a1a2e">${totalPoints}/${maxPoints}</strong></div>`;
-    if(scores.length > 0){
-      html += `<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">`;
-      scores.forEach(sc => { const exam = EXAMS[sc.exam_id]; html += `<button class="btn-sm btn-view" onclick="viewCarnetFromAdmin('${user.email}','${sc.exam_id}')">📜 ${exam?.title || sc.exam_id} — ${sc.total_points}/${sc.max_points} (${sc.percent}%)</button>`; });
-      html += `</div>`;
-    } else { html += `<div style="margin-top:8px;font-size:11px;color:#9ca3af;font-style:italic">Hələ nəticə yoxdur</div>`; }
-    html += `</div>`;
-  }
-  html += '</div>';
-  container.innerHTML = html;
-}
-
-async function viewCarnetFromAdmin(email, examId){
-  const users = await dbQuery('users', { email: email });
-  if(users.length === 0) return;
-  const user = users[0];
-  const scores = await dbQuery('scores', { user_id: user.id, exam_id: examId });
-  if(scores.length === 0) return;
-  const score = scores[0];
-  let answers = await dbQuery('answers', { score_id: score.id });
-  if(!answers || answers.length === 0) answers = [];
-  const exam = EXAMS[examId];
-  const date = new Date(score.created_at).toLocaleString('az-AZ');
-  const isMarker = currentUser && currentUser.role === 'marker';
-  const isAdmin = currentUser && currentUser.role === 'admin';
-  const canEdit = isMarker || isAdmin;
-  let html = `<div style="padding:20px"><div style="background:#fff;border-radius:16px;padding:30px;box-shadow:0 4px 20px rgba(0,0,0,0.1)"><div style="text-align:center;border-bottom:3px double #1a1a2e;padding-bottom:20px;margin-bottom:24px"><div style="font-size:12px;color:#6b7280;letter-spacing:2px;text-transform:uppercase">CAMBRIDGE FCE PLATFORM — ${canEdit ? 'Marker/Admin' : 'Admin'} baxış</div><h1 style="font-family:Merriweather,serif;color:#1a1a2e">📜 NƏTİCƏ VƏRƏQİ</h1><div style="font-size:14px;color:#6b7280;margin-top:6px">${exam.title}</div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;padding:16px;background:#f9fafb;border-radius:10px"><div><strong>Ad:</strong> ${user.name}</div><div><strong>Email:</strong> ${user.email}</div><div><strong>Tarix:</strong> ${date}</div><div><strong>Nəticə:</strong> <span id="carnetTotalDisplay">${score.total_points}/${score.max_points} (${score.percent}%)</span></div></div><div style="background:linear-gradient(135deg,#1a1a2e,#2d2d4e);color:#fff;padding:24px;border-radius:12px;text-align:center;margin-bottom:24px"><div style="font-size:14px;opacity:0.8;margin-bottom:8px">Yekun Nəticə</div><div id="carnetGradeBadge" style="display:inline-block;padding:16px 32px;border-radius:12px;font-size:28px;font-weight:900;background:#dc2626;color:#fff">${score.total_points}/${score.max_points} (${score.percent}%)</div></div><table style="width:100%;border-collapse:collapse" id="carnetTable"><thead><tr><th style="padding:12px;text-align:left;background:#1a1a2e;color:#fbbf24;font-weight:700">Part</th><th style="padding:12px;text-align:left;background:#1a1a2e;color:#fbbf24;font-weight:700">Sual</th><th style="padding:12px;text-align:left;background:#1a1a2e;color:#fbbf24;font-weight:700">Cavab</th><th style="padding:12px;text-align:left;background:#1a1a2e;color:#fbbf24;font-weight:700">Düzgün</th><th style="padding:12px;text-align:left;background:#1a1a2e;color:#fbbf24;font-weight:700">Status</th><th style="padding:12px;text-align:left;background:#1a1a2e;color:#fbbf24;font-weight:700">Bal</th></tr></thead><tbody>`;
-  answers.forEach((a, idx) => {
-    const m = MODULES[a.part_id];
-    if(!m) return;
-    let answerDisplay = a.user_answer || '—';
-    if(a.user_image) answerDisplay = `<img src="${a.user_image}" style="max-height:50px;border:1px solid #e5e7eb;border-radius:4px" />`;
-    html += `<tr style="background:${a.is_correct ? '#dcfce7' : '#fee2e2'}" id="reviewRow_${idx}"><td style="padding:12px;border-bottom:1px solid #e5e7eb">Part ${m.moduleNum}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.question_num}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${answerDisplay}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.correct_answer || '—'}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.is_correct ? '✅ Düzgün' : '❌ Səhv'}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">`;
-    if(canEdit){
-      html += `<input type="number" class="marker-score-input" data-idx="${idx}" data-answer-id="${a.id}" value="${a.points || 0}" min="0" max="${a.max_points || 1}" step="0.5" style="width:70px;padding:6px;border:2px solid #e5e7eb;border-radius:6px;text-align:center;font-weight:700" onchange="updateReviewScoreInline(this)"><span style="font-size:11px;color:#666">/${a.max_points || 1}</span>`;
-    } else {
-      html += `<strong>${a.points || 0}/${a.max_points || 1}</strong>`;
-    }
-    html += `</td></tr>`;
-  });
-  html += `</tbody></table>`;
-  if(canEdit){
-    html += `<div style="margin-top:20px;text-align:center"><button onclick="recalculateAndSaveScoreInline('${email}','${examId}','${score.id}')" style="padding:14px 32px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">💾 Balları Yenilə və Yadda Saxla</button><p style="font-size:12px;color:#666;margin-top:8px">⚠️ Diqqət: Bu əməliyyat şagirdin ümumi balını və qiymətini yeniləyəcək.</p></div>`;
-  }
-  html += `</div></div>`;
-  const w = window.open('', '_blank', 'width=900,height=800');
-  w.document.write(`<html><head><title>NƏTİCƏ VƏRƏQİ — ${user.name}</title><style>body{font-family:'Inter',sans-serif;padding:0;background:#f0f0eb}</style></head><body>${html}</body></html>`);
-  w.document.close();
-}
-
-function renderMarkerUserSelect(){
-  const sel = document.getElementById('markerUserSelect');
-  sel.innerHTML = '<option value="">— Şagird seçin —</option>';
-  dbQuery('users', { role: 'student' }).then(students => { students.forEach(u => { sel.innerHTML += `<option value="${u.email}">${u.name} (${u.email})</option>`; }); });
-}
-
-async function makeMarker(){
-  const email = document.getElementById('markerUserSelect').value;
-  if(!email){ alert('Zəhmət olmasa şagird seçin'); return; }
-  const users = await dbQuery('users', { email: email });
-  if(users.length === 0){ alert('İstifadəçi tapılmadı'); return; }
-  await dbUpdate('users', users[0].id, { role: 'marker' });
-  alert(`✅ ${users[0].name} marker təyin olundu!`);
-  renderMarkerUserSelect(); renderMarkersList(); renderAdminUsers();
-}
-
-async function renderMarkersList(){
-  const container = document.getElementById('markersList');
-  const markers = await dbQuery('users', { role: 'marker' });
-  if(markers.length === 0){ container.innerHTML = '<div class="no-data">Heç bir marker yoxdur</div>'; return; }
-  let html = '<h4 style="margin-bottom:12px">Aktiv Markerlər:</h4><div style="display:grid;gap:8px">';
-  markers.forEach(m => { html += `<div style="background:#fef3c7;padding:12px;border-radius:8px;display:flex;justify-content:space-between;align-items:center"><span><strong>${m.name}</strong> <span style="font-size:12px;color:#666">(${m.email})</span></span><button class="btn-sm btn-del" onclick="removeMarker('${m.email}')">Markerlikdən Çıxar</button></div>`; });
-  html += '</div>';
-  container.innerHTML = html;
-}
-
-async function removeMarker(email){
-  if(!confirm('Bu istifadəçini markerlikdən çıxarmaq istədiyinizə əminsiniz?')) return;
-  const users = await dbQuery('users', { email: email });
-  if(users.length === 0) return;
-  await dbUpdate('users', users[0].id, { role: 'student' });
-  renderMarkersList(); renderMarkerUserSelect(); renderAdminUsers();
-}
 
 // ==================== INIT ====================
 initDB().then(() => { if(currentUser) enterApp(); });
