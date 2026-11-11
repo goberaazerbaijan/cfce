@@ -118,104 +118,102 @@ const part2Data = {
 
 const part3Data = {
   id:'part3', moduleNum:3, moduleTitle:"Part 3 — Word Formation", moduleSubtitle:"Verilən sözdən yeni söz düzəldin",
-  title:"Is chess a sport?",
-  instructions:"For questions <strong>17–24</strong>, use the word given in capitals to form a word that fits in the gap.",
-  keywords:[{num:17,word:"CRITIC"},{num:18,word:"CHAMPION"},{num:19,word:"ENERGY"},{num:20,word:"COMPETE"},{num:21,word:"INTELLECT"},{num:22,word:"WILLING"},{num:23,word:"ADMIRE"},{num:24,word:"STRONG"}],
+  title:"The mini-monkeys of Madagascar",
+  instructions:"For questions <strong>17–24</strong>, read the text below. Use the word given in capitals at the end of some of the lines to form a word that fits in the gap.",
   paragraphs:[
-    "Should chess be considered a sport, (0) SUITABLE to be included in events like the Olympic games? In my view, there's no doubt about it. The point of sport is to test people's physical ability. So, I'm not (17) chess as a game and I have great respect for players who take part in chess (18). I'm just saying it's not a sport.",
-    "There are certainly other sports which don't require athletes to be (19) – target shooting is one. But there's a significant difference between shooting and playing chess. In chess, the physical actions themselves are not what the (20) are trying to be good at.",
-    "Instead, chess makes enormous (21) demands on players. Just look at the skill displayed by the grandmasters. So, my (22) to describe chess as a sport does not affect my (23) for it. Chess calls for extreme mental (24) and is a very enjoyable activity."
+    "Mouse lemurs, the smallest group of primates in the (0) WORLD, are only found in Madagascar. Until recently, scientists believed that only two types of these tiny tree-dwellers existed. However, thanks to the work of a team of (17) _______, there are now thought to be over 20.",
+    "A research expedition to the island resulted in the (18) _______ of two new species. There are very few (19) _______ between mouse lemur species, but genetic analysis confirmed they were (20) _______ different.",
+    "At around 27 cm in length, Madame Berthe's mouse lemur is the smallest. They are nocturnal and (21) _______, sleeping in nests made from leaves. Their diet consists of fruit and flowers, but they will also catch insects if the (22) _______ arises.",
+    "Sadly, mouse lemurs are in (23) _______ due to deforestation. It is (24) _______ that 90% of Madagascar's forests have been lost, meaning conservation efforts are crucial."
   ],
   gaps:[
-    {num:17,answer:"CRITICISING",given:"CRITIC",explanation:"Present participle."},
-    {num:18,answer:"CHAMPIONSHIPS",given:"CHAMPION",explanation:"Cəm isim."},
-    {num:19,answer:"ENERGETIC",given:"ENERGY",explanation:"Sifət."},
-    {num:20,answer:"COMPETITORS",given:"COMPETE",explanation:"Cəm isim."},
-    {num:21,answer:"INTELLECTUAL",given:"INTELLECT",explanation:"Sifət."},
-    {num:22,answer:"UNWILLINGNESS",given:"WILLING",explanation:"Mənfi prefiks + isim."},
-    {num:23,answer:"ADMIRATION",given:"ADMIRE",explanation:"İsim."},
-    {num:24,answer:"STRENGTH",given:"STRONG",explanation:"İsim."}
+    {num:17,given:"BIOLOGY",answer:"BIOLOGISTS",explanation:"'biologists' — bioloqlar."},
+    {num:18,given:"DISCOVER",answer:"DISCOVERY",explanation:"'discovery' — kəşf."},
+    {num:19,given:"DIFFER",answer:"DIFFERENCES",explanation:"'differences' — fərqlər."},
+    {num:20,given:"SIGNIFY",answer:"SIGNIFICANTLY",explanation:"'significantly' — əhəmiyyətli dərəcədə."},
+    {num:21,given:"SECRET",answer:"SECRETIVE",explanation:"'secretive' — gizli."},
+    {num:22,given:"OPPORTUNE",answer:"OPPORTUNITY",explanation:"'opportunity' — imkan/fürsət."},
+    {num:23,given:"DANGEROUS",answer:"DANGER",explanation:"'in danger' — təhlükədə."},
+    {num:24,given:"ESTIMATE",answer:"ESTIMATED",explanation:"'estimated' — təxmin edilir."}
   ]
 };
 
 const part4Data = {
-  id:'part4', moduleNum:4, moduleTitle:"Part 4 — Key Word Transformation", moduleSubtitle:"İkinci cümləni birinci ilə eyni mənalı edin",
-  instructions:"For questions <strong>25–30</strong>, complete the second sentence using the word given. Use between <strong>two and five words</strong>. Write in <strong>CAPITAL LETTERS</strong>.",
+  id:'part4', moduleNum:4, moduleTitle:"Part 4 — Key Word Transformation", moduleSubtitle:"Açar sözlə cümləni yenidən qurun (2-5 söz)",
+  title:"Key Word Transformation",
+  instructions:"For questions <strong>25–30</strong>, complete the second sentence so that it has a similar meaning to the first, using the word given. Do not change the word. Use between <strong>two and five words</strong>.",
   questions:[
-    {num:25,original:"I bought these dance shoes two weeks ago and I've only just started to feel comfortable in them.",keyword:"USED",sentenceStart:"It's taken me two weeks",sentenceEnd:"wearing these dance shoes.",answer:"TO GET USED TO",explanation:"'get used to'."},
-    {num:26,original:"That boy's sister won an Olympic medal!",keyword:"WHOSE",sentenceStart:"That's",sentenceEnd:"won an Olympic medal!",answer:"THE BOY WHOSE SISTER",explanation:"'whose' — aidiyyət."},
-    {num:27,original:"Can you look after my bag for me for a moment?",keyword:"EYE",sentenceStart:"Can you",sentenceEnd:"my bag for me for a moment?",answer:"KEEP AN EYE ON",explanation:"'keep an eye on'."},
-    {num:28,original:"The teacher advised us against bringing too much money.",keyword:"NOT",sentenceStart:"The teacher's advice",sentenceEnd:"too much money.",answer:"WAS NOT TO BRING",explanation:"Məsləhət etməmək."},
-    {num:29,original:"Let's go straight to the main stage when we get to the festival.",keyword:"SOON",sentenceStart:"Let's go to the main stage",sentenceEnd:"at the festival.",answer:"AS SOON AS WE ARRIVE",explanation:"'as soon as'."},
-    {num:30,original:"I really don't mind which day we have the party on.",keyword:"CONCERNED",sentenceStart:"As",sentenceEnd:", we can have the party on any day.",answer:"FAR AS I'M CONCERNED",explanation:"'as far as I'm concerned'."}
+    {num:25,first:"'I'm sorry I'm late,' said James.",keyword:"APOLOGISED",secondPre:"James",secondPost:"late.",answer:"APOLOGISED FOR BEING",explanation:"'apologise for doing sth'."},
+    {num:26,first:"The film was so boring that I fell asleep.",keyword:"SUCH",secondPre:"It was",secondPost:"that I fell asleep.",answer:"SUCH A BORING FILM",explanation:"'such a/an + adj + noun'."},
+    {num:27,first:"You must not open this door under any circumstances.",keyword:"ACCOUNT",secondPre:"On",secondPost:"this door be opened.",answer:"NO ACCOUNT MUST",explanation:"İnversiya: 'on no account must...'"},
+    {num:28,first:"I don't think it's a good idea to go there alone.",keyword:"WERE",secondPre:"If I",secondPost:"not go there alone.",answer:"WERE YOU I WOULD",explanation:"'If I were you, I would...'"},
+    {num:29,first:"She started working here three years ago.",keyword:"BEEN",secondPre:"She",secondPost:"three years.",answer:"HAS BEEN WORKING HERE FOR",explanation:"Present Perfect Continuous."},
+    {num:30,first:"It was impossible for us to see the stage.",keyword:"COULD",secondPre:"We",secondPost:"the stage.",answer:"COULD NOT SEE",explanation:"'could not see'."}
   ]
 };
 
 const part5Data = {
-  id:'part5', moduleNum:5, moduleTitle:"Part 5 — Reading", moduleSubtitle:"Mətni oxuyun və cavab verin",
-  title:"A Career in Music", subtitle:"Reporter Eamonn Forde met UK songwriter Jamie Scott.",
-  instructions:"For questions <strong>31–36</strong>, choose the answer (<strong>A, B, C or D</strong>) which fits best.",
+  id:'part5', moduleNum:5, moduleTitle:"Part 5 — Multiple Choice", moduleSubtitle:"Mətn əsasında düzgün variantı seçin",
+  title:"The joys and challenges of working from home",
+  instructions:"For questions <strong>31–36</strong>, choose the answer (<strong>A, B, C or D</strong>) which you think fits best according to the text.",
   paragraphs:[
-    "Jamie Scott has written and produced some of the biggest hits in the UK music business. He says his mother was an amazing singer who also got him interested in the guitar. The only radio he heard in his house was a local radio station for middle-aged people, which goes some way to explaining what influenced him as he was growing up. He says he was 12 before he heard a contemporary song. At about the same time, he had to choose between tennis, which he played at national level, and music – he was spending his lunchtimes in the music room at school working out songs on the piano. With the tennis playing, I was at quite a high level, he says. But it was not what I wanted to do for the rest of my life. It was just too much hard work.",
-    "At 17, he left school to try to make it as a performer. He was part of a duo with a friend who, while not sharing his enthusiasm for making a career out of performing, was a reasonably accomplished guitarist. I went to my parents and I just broke down, he recalls. I told them this is what I wanted to do, that I had been writing lyrics in economics lessons and I had been playing the piano every day when everyone else was out playing. His dad was understanding and gave him 18 months to try and make it; but if he didn't, he would have to get a job. After a few near misses with record labels, he was signed to a music publisher when he was 19, off the back of one song. However, record labels were only interested in him as a solo act and so he had to split with his friend.",
-    "In the end, it was behind the scenes rather than on stage where he would make his name. After a difficult period signed to a record label in the UK, he asked them to let him go and he switched to another label to release a new album. Fame and fortune did not follow. It feels like to me in my own artist career that I've been in the wrong place at the wrong time for most of that time, he says. But as a writer I've been in the right place at the right time.",
-    "Writing for others is where he was to find his feet. I'd like to think that I am one of the main writers in the UK that UK labels look to send up-and-coming artists to, he says. This, he believes, helps launch their careers.",
-    "Sometimes he has to explain to the artists he's helping that writing with an eye on the charts – writing something that's likely to sell well – is nothing to be ashamed of. Why? Why don't you want to? Don't you want 10 million people streaming your music next month? I'm not saying that they should write a bad song, but we should get to something that they think is amazing and that I think is amazing.",
-    "It is refreshing in an age of false modesty in the world of pop music to hear someone speak so bluntly about wanting to write huge songs that go to number one. There is no sense of arrogance or entitlement with Scott; he just realised long ago that he wants to write number ones and that he has a natural ability to do it. So, rather than tie himself in knots trying to make himself sound acceptable to other people, he just gets on with it.",
-    "That's the endgame for when I go into the studio with someone, he says. Whatever happens, we need to state that this is on the global level and that we need to write the best music of next year. It's not just about what's cool. We want to write classic modern pop songs."
+    "When I first started working from home, I imagined days filled with calm productivity. No daily commute, no office distractions, and total control over my schedule. The reality, as I quickly discovered, was somewhat more complex.",
+    "In the beginning, the sheer flexibility was intoxicating. I could wake up five minutes before starting work, wear whatever I liked, and take breaks whenever I chose. But within a few weeks, the lack of boundary between professional and personal life began to take its toll.",
+    "One of the biggest hurdles was self-discipline. Without the social pressure of an office environment, procrastination became an easy trap. The laundry, the dishes, even reorganising my bookshelves suddenly seemed far more urgent than replying to clients.",
+    "Isolation was another unexpected factor. I had always considered myself an introvert, yet I found myself genuinely missing the casual interactions with colleagues – the quick chat by the coffee machine, the shared laughter over a silly mistake.",
+    "Eventually, I realised that thriving as a remote worker required creating artificial structures. I designated a specific corner of my living room as 'the office' and strictly forbade myself from working from the sofa.",
+    "Now, three years into this arrangement, I can honestly say I wouldn't trade it for anything. It took time, mistakes, and deliberate effort, but working from home has finally become the liberating experience I had hoped for."
   ],
   questions:[
-    {num:31,text:"What do we learn about Jamie Scott's childhood in the first paragraph?",options:{A:"It was clear to him that he would work in the music industry.",B:"He wished he had had access to more musical instruments at home.",C:"He regretted having to give up the idea of playing sport professionally.",D:"The music of a previous generation was an inspiration to him."},answer:"D",explanation:"Mətn: 'local radio station for middle-aged people... influenced him'."},
-    {num:32,text:"What is emphasised about Scott in the second paragraph?",options:{A:"how determined he was",B:"how little support he had",C:"how quickly his talent was recognised",D:"how much better a musician he was than his friend"},answer:"A",explanation:"Qətiyyətini göstərir."},
-    {num:33,text:"What does Scott suggest in the third paragraph?",options:{A:"It was his decision to become a songwriter.",B:"It is more difficult to become a performer than a songwriter.",C:"Bad luck prevented him from becoming a successful performer.",D:"He was unprepared for the challenges."},answer:"C",explanation:"'wrong place at the wrong time'."},
-    {num:34,text:"What opinion does Scott express in the fifth paragraph?",options:{A:"Few writers are able to write a song that will appeal to large numbers.",B:"Only a song that has had a great deal of work can succeed.",C:"Unless he likes a song himself other people are unlikely to buy it.",D:"Just because a song is popular does not mean it lacks quality."},answer:"D",explanation:"Populyar = keyfiyyətsiz deyil."},
-    {num:35,text:"What is the reporter's attitude towards Scott in the sixth paragraph?",options:{A:"He appreciates the quality of his song-writing.",B:"He respects his commitment to his work.",C:"He admires him for his honesty.",D:"He approves of his ambition."},answer:"C",explanation:"Dürüstlüyünü təqdir edir."},
-    {num:36,text:"What does 'this' refer to in line 64?",options:{A:"the place where they are recording",B:"the work they are doing",C:"the style of their music",D:"the plan they have for the future"},answer:"B",explanation:"Etdikləri iş."}
+    {num:31,text:"What did the writer anticipate about working from home?",options:{A:"It would require extensive adjustments.",B:"It would offer a stress-free environment.",C:"It would be more challenging than expected.",D:"It would harm their career prospects."},answer:"B",explanation:"'imagined days filled with calm productivity'."},
+    {num:32,text:"What problem did the writer face in the early weeks?",options:{A:"Inability to separate work from personal life.",B:"Excessive demands from colleagues.",C:"Difficulty staying awake during work hours.",D:"Technical issues with equipment."},answer:"A",explanation:"'the lack of boundary between professional and personal life began to take its toll'."},
+    {num:33,text:"Why does the writer mention doing household chores?",options:{A:"To show how clean their home became.",B:"To illustrate how they delayed working.",C:"To explain their daily morning routine.",D:"To criticise standard office hours."},answer:"B",explanation:"'procrastination became an easy trap'."},
+    {num:34,text:"How did the writer feel about working without colleagues?",options:{A:"Relieved to avoid office politics.",B:"Surprised to miss casual conversations.",C:"Indifferent, as they were introverted.",D:"Eager to meet clients in person instead."},answer:"B",explanation:"'found myself genuinely missing the casual interactions'."},
+    {num:35,text:"What solution did the writer implement to improve productivity?",options:{A:"Returning to a shared workspace.",B:"Working exclusively from comfortable areas.",C:"Establishing dedicated physical work zones.",D:"Decreasing overall weekly working hours."},answer:"C",explanation:"'designated a specific corner of my living room as the office'."},
+    {num:36,text:"What is the writer's overall attitude now?",options:{A:"They regret leaving the traditional office.",B:"They feel remote work is overrated.",C:"They are satisfied after adapting to it.",D:"They plan to seek hybrid employment."},answer:"C",explanation:"'I wouldn't trade it for anything'."}
   ]
 };
 
-const sentences={
-  A:"Narukawa's concept first divides the globe into ninety-six equal triangles.",
-  B:"This explains why such a strange-looking map is actually the most proportionate depiction of our planet ever seen.",
-  C:"While this makes it easier to appreciate the relative size of continents and oceans, it doesn't completely solve the problem.",
-  D:"Whether it will be adopted more widely than this remains to be seen.",
-  E:"The continents curve upwards towards the edges of the map instead of going straight across it.",
-  F:"The reason for differences like this has to do with the challenge of transforming a three-dimensional globe into a two-dimensional flat map.",
-  G:"There was, however, a suggestion that the accuracy could be increased further in the future by cutting the world into even smaller chunks."
-};
-
 const part6Data = {
-  id:'part6', moduleNum:6, moduleTitle:"Part 6 — Gapped Text", moduleSubtitle:"A–G arasından uyğun cümləni seçin",
-  title:"A new map of the world", subtitle:"Six sentences have been removed.",
-  instructions:"For questions <strong>37–42</strong>, choose from the sentences <strong>A–G</strong> the one which fits each gap. One extra sentence.",
+  id:'part6', moduleNum:6, moduleTitle:"Part 6 — Gapped Text", moduleSubtitle:"Boşluqlara uyğun gələn cümləni seçin (A-G)",
+  title:"The secret world of underground fungi",
+  instructions:"For questions <strong>37–42</strong>, choose from the sentences <strong>A–G</strong> the one which fits each gap. There is one extra sentence.",
   paragraphs:[
-    "The decision to present the 2016 Good Design Award, one of Japan's most famous design honours, to Hajime Narukawa, the maker of the AuthaGraph World Map, came as a surprise to many. Given that previous winners have tended to be inventors of exciting new gadgets, people wondered what had impressed the judges about the design of a map.",
-    "The world map with which most of us are familiar uses what is known as the Mercator projection, a mapping technique developed in 1569 by map maker Gerardus Mercator. Though it is excellent for navigation, it significantly changes the size and proportion of areas of land and oceans. So while North America and Africa appear to be equal in size, in reality North America could fit inside Africa with plenty of room to spare. Similarly, though Brazil is more than five times larger than Alaska, it appears considerably smaller than it really is. [37]______ It is a task that is surprisingly hard to do accurately.",
-    "Over the years, there have been numerous attempts to deal with the issue. The Gall-Peters projection, for example, reduces the size of the regions near the poles. [38]______ This is because certain places appear oddly stretched. A similar change to the shapes of the continents occurs in the Mollweide projection, which attempts to show them more accurately by bending the lines of longitude. The Boggs eumorphic projection shows the correct shapes and sizes of everything on the map by cutting the globe into sections, but doing this means that vital information such as the distance between continents is not so clear, making the map impractical for navigation.",
-    "The AuthaGraph World Map appears to have solved these issues through the use of geometrical shapes. [39]______ These are then transferred onto the surface of what's called a tetrahedron, which is really just a four-sided pyramid. The tetrahedron can then be unfolded to form a flat rectangle. Doing this creates a two-dimensional map, which closely resembles the surface of the original globe.",
-    "The result is a world map unlike any other in its accuracy. [40]______ This makes Africa appear to be tilted on its side. Also the longitude and latitude lines are similarly distorted. Although these differences make the map look strangely unfamiliar, this is the closest anyone has ever come to capturing clearly and accurately the size and proportions of the Earth's surface.",
-    "In their announcement declaring the AuthaGraph World Map the overall winner, the officials at Good Design Award said it was selected because it faithfully represents all oceans and continents, including the neglected Antarctica, and provides an advanced, precise perspective of our planet. [41]______ This would involve some tricky mathematical calculations, but might well be something for map designers to consider.",
-    "While the AuthaGraph World Map is not ideal for navigation, it does have some practical applications, like helping us better understand how aeroplane flight paths are affected by the way the Earth's surface is curved. The map is also well suited to classroom use and has already been incorporated into Japanese textbooks. [42]______ Meanwhile, those eager to observe the world more accurately can purchase the map directly from the creator's website."
+    "Beneath the forest floor lies a vast, intricate network that rivals the complexity of our own nervous systems. Known as the mycorrhizal network, it connects trees and plants through microscopic fungal threads. (37) _______ This underground system allows plants to communicate and share vital resources in ways that were once considered pure fantasy.",
+    "Through these fungal connections, older 'mother trees' can nourish younger seedlings that grow in their shade. (38) _______ Studies show that shaded seedlings receiving support through the network have significantly higher survival rates.",
+    "The network is not merely a pipeline for nutrients; it functions as an information highway. When a tree is attacked by insects, it can send chemical warning signals through the fungal threads to its neighbours. (39) _______ This early preparation drastically reduces damage across the forest canopy.",
+    "However, the system is not entirely altruistic. Fungi demand payment for their services, claiming up to thirty percent of the sugars produced by trees through photosynthesis. (40) _______ If a plant fails to provide enough carbon, fungi may reduce nutrient delivery or redirect resources elsewhere.",
+    "Scientists are now beginning to understand how human activities threaten this subterranean web. Intensive forestry and soil disruption can sever fungal networks that took decades to develop. (41) _______ Without this invisible infrastructure, forests become far more vulnerable to disease and climate extremes.",
+    "Protecting these underground partnerships may prove essential in the fight against climate change. Healthy fungal networks help soil store immense amounts of carbon. (42) _______ Preserving the world beneath our feet is therefore just as urgent as protecting the trees above."
   ],
-  gaps:[
-    {num:37,answer:"F",explanation:"Ölçü fərqlərinin səbəbi."},
-    {num:38,answer:"C",explanation:"Mənfi tərəf."},
-    {num:39,answer:"A",explanation:"'geometrical shapes' → triangles."},
-    {num:40,answer:"E",explanation:"Qeyri-adi görünüş."},
-    {num:41,answer:"G",explanation:"Gələcək təklifi."},
-    {num:42,answer:"D",explanation:"Daha geniş qəbul."}
+  options:{
+    A:"They do this by transferring water and carbon compounds directly to them.",
+    B:"In return, the neighbouring trees begin producing defensive chemicals before the pests even arrive.",
+    C:"It is sometimes referred to as the 'wood wide web'.",
+    D:"It is a reciprocal relationship where both partners hold each other accountable.",
+    E:"Forests with damaged fungal networks take significantly longer to regenerate after fires.",
+    F:"In fact, they are among the most effective carbon sinks on the planet.",
+    G:"Some trees, however, deliberately sever their connections during winter."
+  },
+  questions:[
+    {num:37,answer:"C",explanation:"'wood wide web' mətndəki internet şəbəkəsi analogiyasını tamamlayır."},
+    {num:38,answer:"A",explanation:"Ana ağacların cavan fidanları qidalandırması üsulunu izah edir."},
+    {num:39,answer:"B",explanation:"Zərərverici həşəratlara qarşı qonşu ağacların öncədən müdafiə kimyəviləri hazırlaması."},
+    {num:40,answer:"D",explanation:"Ağac və göbələk arasındakı qarşılıqlı alver və asılılıq əlaqəsini təsvir edir."},
+    {num:41,answer:"E",explanation:"İnsan müdaxiləsi və torpaq dağıntısının meşənin bərpasına mənfi təsiri."},
+    {num:42,answer:"F",explanation:"İqlim dəyişikliyi kontekstində karbon qazının torpaqda saxlanılması."}
   ]
 };
 
 const part7Data = {
-  id:'part7', moduleNum:7, moduleTitle:"Part 7 — Multiple Matching", moduleSubtitle:"Hansı şəxs bu fikri deyir?",
-  title:"Young ballet dancers", subtitle:"For questions 43–52, choose from the people (A–D).",
-  instructions:"For questions <strong>43–52</strong>, choose from the people <strong>A–D</strong>. The people may be chosen more than once.",
+  id:'part7', moduleNum:7, moduleTitle:"Part 7 — Multiple Matching", moduleSubtitle:"Hər sualın hansı şəxsə aid olduğunu tapın (A, B, C, D)",
+  title:"A life in ballet",
+  instructions:"For questions <strong>43–52</strong>, choose from the four dancers (<strong>A–D</strong>). Dancers may be chosen more than once.",
   people:{
-    A:{name:"Maria Duncan",text:"I was four when I reluctantly attended my first ballet class. I didn't take to it initially and there was little sign that I'd ever develop a genuine passion for it. I eventually began to show some promise, but my parents weren't happy with the dance school, and invested time and energy into finding a new one. I didn't see what the fuss was about because I got on well with my teacher and I was disappointed when the new one turned out to be much stricter. For ballet dancers, the reality is that artistic perfection can never be achieved. This used to frustrate me, but I've learnt to respond more positively to negative comments I get. Even people who've never tried ballet know how tough it is. From an early age, my mother instilled in me the importance of discipline and I appreciate that now, because I wouldn't have developed it independently."},
-    B:{name:"Leon Robson",text:"It's hard to imagine something that makes more demands on your muscles and joints than ballet. Ask anyone who's attended a few classes as a hobby. They'll be aching afterwards in places they didn't know existed – and that includes fitness fanatics! There are lots of rather silly misconceptions about ballet dancers, and I think some things are exaggerated by the media. For a start, we don't all live in isolation, only mixing with other dancers. Anyway, the highlight of any dancer's life is taking part in a performance. I used to get very nervous beforehand, though, to the point where I could barely perform, but I've since learnt a few strategies I can apply, to good effect. And after a show, I take ages to unwind. I'm still buzzing and I tend to relive the excitement of the experience. I don't dwell on my errors too much, though."},
-    C:{name:"Melanie Haig",text:"I started young, as most ballet dancers do, and seemed to show an aptitude for it more or less immediately. I remember being taken by my teacher to visit a professional ballet school and being intimidated by how good the girls were there, almost to the point of giving up. I sometimes think that the appeal of ballet to audiences is that they understand there's no way to achieve elegance and beauty without exceptional discipline, training and even physical pain. Ballet is challenging because a dancer is doing a number of things at any given moment to create something that seems effortless. Some of these, like lifting the stomach up while tensing leg muscles and relaxing the neck, can feel unnatural, and others, like standing on your toes, can even cause injury if repeated time and time again – as they inevitably are."},
-    D:{name:"Peter Moreno",text:"While most people, including even the best ballet dancers, might think the routine of having to train for several hours every day is tough, I find it strangely reassuring and comforting rather than boring or restrictive. And it's not as if training ends when I leave the ballet school. At home I find myself doing basic exercises even while I'm watching TV or brushing my teeth. Ballet dominates your whole life – that was certainly my experience. I don't regret missing out on doing sport and not going to parties, though – I'm a far better dancer as a result. I've got loads of videos of top ballet dancers performing, some of them from many years ago and others more contemporary. I don't have a particular role model I'm obsessed with or think stands out for me. I pick up ideas from a range of dancers and styles."}
+    A:{name:"Maria",text:"I didn't take to ballet initially; my mother enrolled me to improve my posture. I was rather clumsy, but eventually began to show some promise. When our school changed artistic directors, I was deeply disappointed because the new one was far stricter. Looking back, though, it forced me to develop thick skin. I learnt to respond more positively to negative comments rather than taking everything personally."},
+    B:{name:"Leon",text:"People have all sorts of silly misconceptions about ballet dancers, mostly exaggerated by the media – that we eat nothing and have no life outside the studio. In truth, the rigorous routine is tough, yet I find it strangely reassuring and comforting. Pre-performance jitters used to paralyze me, but over the years I've learnt a few strategies I can apply to good effect before stepping onto the stage."},
+    C:{name:"Melanie",text:"When I won a scholarship to the national academy, I was thoroughly intimidated by how good the other girls were there. The hardest part for me was the mental multitasking – ballet involves doing a number of things at any given moment, from keeping your shoulders down to tracking the rhythm and maintaining eye contact with the audience."},
+    D:{name:"Peter",text:"I don't regret missing out on normal teenage parties and outings because the sacrifices I made ultimately paid off. I'm a far better dancer today because of that single-minded focus. In terms of choreography, I don't restrict myself to classical traditions; I pick up ideas from a range of dancers and styles, which makes my own performances unique."}
   },
   questions:[
     {num:43,text:"says that they get their inspiration from different sources?",answer:"D",explanation:"Peter: 'I pick up ideas from a range of dancers and styles.'"},
@@ -239,7 +237,7 @@ let currentUser = null;
 let currentExamId = null, currentModuleId = null, currentQ = 0, timerInterval, seconds = 0, autoAdvanceTimer = null, isTransitioning = false;
 
 function getSession(){ try { return JSON.parse(localStorage.getItem('fce_current')); } catch(e){ return null; } }
-function saveSession(user){ localStorage.setItem('fce_current', JSON.stringify(user)); }
+function saveSession(user){ try { localStorage.setItem('fce_current', JSON.stringify(user)); } catch(e){ console.warn('LocalStorage full', e); } }
 function clearSession(){ localStorage.removeItem('fce_current'); }
 
 // ==================== INIT ====================
@@ -414,7 +412,7 @@ function renderExamNavButtons(){
 }
 
 function finishExam(){
-  if(!confirm('İmtahanı bitirmək istədiyinizə əminsiniz? Cavablarınız yadda saxlanılacaq.')) return;
+  if(!confirm('İmtahanı vaxtından əvvəl yekunlaşdırmaq və nəticələri hesablamaq istəyirsiniz?')) return;
   showFinalResults();
 }
 
@@ -445,7 +443,7 @@ function showCarnetFromCurrent(){
   showCarnet();
 }
 
-// ==================== ✅ YENİ: ŞAGİRD KABİNETİ (1 İMTAHAN = 1 DƏFƏ + NƏTİCƏ) ====================
+// ==================== EXAM LIST ====================
 async function showExamList(){
   document.getElementById('examPage').classList.add('hidden');
   document.getElementById('carnetPage').classList.add('hidden');
@@ -456,61 +454,103 @@ async function showExamList(){
   const grid = document.getElementById('examGrid');
   grid.innerHTML = '';
   
+  // İstifadəçinin bütün nəticələrini alırıq (həm DB, həm lokal)
   const scores = await dbQuery('scores', { user_id: currentUser.id });
   const scoresMap = {};
   scores.forEach(s => { scoresMap[s.exam_id] = s; });
-  
+  if(currentUser.scores){
+    Object.keys(currentUser.scores).forEach(eid => {
+      if(!scoresMap[eid]){
+        const sc = currentUser.scores[eid];
+        scoresMap[eid] = {
+          exam_id: eid,
+          total_points: sc.points,
+          max_points: sc.maxPoints,
+          percent: sc.percent,
+          grade: sc.grade,
+          grade_text: sc.gradeText
+        };
+      }
+    });
+  }
+
   Object.values(EXAMS).forEach(exam => {
     const score = scoresMap[exam.id];
-    const alreadyTaken = !!score;
-    
-    let statusHtml = '<span class="status status-new">Yeni</span>';
-    if(score){
-      const pct = Math.round(score.percent || 0);
-      statusHtml = pct >= 100 ? `<span class="status status-done">✅ ${pct}%</span>` : `<span class="status status-partial">⏳ ${pct}%</span>`;
-    }
-    
     const totalQ = exam.parts.reduce((s, pid) => s + (MODULES[pid].questions?.length || MODULES[pid].gaps?.length || 0), 0);
     const card = document.createElement('div');
-    card.className = 'exam-card' + (alreadyTaken ? ' exam-card-taken' : '');
-    
-    if(alreadyTaken){
-      card.onclick = () => viewMyResult(exam.id);
+    card.className = 'exam-card';
+
+    if(score){
+      // ✅ Şagird artıq bu imtahanda iştirak edib: 1 dəfəlik limit, nəticəyə baxış
+      const pct = Math.round(score.percent || 0);
+      const grade = score.grade || 1;
+      const gradeText = score.grade_text || (grade >= 4 ? 'Uğurlu' : 'Tamamlandı');
+      card.style.borderColor = '#16a34a';
+      card.style.background = '#f0fdf4';
+      card.onclick = () => viewExamCarnet(exam.id);
+      card.innerHTML = `
+        <div class="exam-icon">${exam.icon}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
+          <h3 style="margin-bottom:0">${exam.title}</h3>
+          <span class="status status-done" style="background:#dcfce7;color:#16a34a;font-weight:700">✅ Tamamlandı</span>
+        </div>
+        <p style="margin-bottom:10px">${exam.description}</p>
+        <div style="background:#fff;border:1px solid #bbf7d0;border-radius:8px;padding:10px;margin-bottom:12px;font-size:13px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="color:#6b7280">Toplanan Bal:</span>
+            <strong style="color:#16a34a">${score.total_points}/${score.max_points} (${pct}%)</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between">
+            <span style="color:#6b7280">Yekun Qiymət:</span>
+            <strong style="color:#1a1a2e">Qiymət ${grade} (${gradeText})</strong>
+          </div>
+        </div>
+        <div class="exam-meta" style="margin-bottom:10px">
+          <span>${exam.parts.length} Part • ${totalQ} sual</span>
+          <span style="font-size:11px;color:#059669;font-weight:600">Yalnız 1 cəhd (İstifadə olunub)</span>
+        </div>
+        <button class="btn-carnet-view" style="width:100%;padding:10px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px" onclick="event.stopPropagation(); viewExamCarnet('${exam.id}')">
+          📜 Nəticə Vərəqini Göstər
+        </button>
+      `;
     } else {
+      // ✅ Şagird hələ bu imtahanda iştirak etməyib: İmtahana başlamaq hüququ var
       card.onclick = () => startExam(exam.id);
+      card.innerHTML = `
+        <div class="exam-icon">${exam.icon}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px">
+          <h3 style="margin-bottom:0">${exam.title}</h3>
+          <span class="status status-new">İştirak edilməyib</span>
+        </div>
+        <p style="margin-bottom:12px">${exam.description}</p>
+        <div class="exam-meta" style="margin-bottom:12px">
+          <span>${exam.parts.length} Part • ${totalQ} sual</span>
+          <span style="font-size:11px;color:#d97706;font-weight:600">⚠️ 1 dəfə iştirak hüququ</span>
+        </div>
+        <button style="width:100%;padding:10px;background:#1a1a2e;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px" onclick="event.stopPropagation(); startExam('${exam.id}')">
+          ▶️ İmtahana Başla
+        </button>
+      `;
     }
-    
-    card.innerHTML = `
-      <div class="exam-icon">${exam.icon}</div>
-      <h3>${exam.title}</h3>
-      <p>${exam.description}</p>
-      <div class="exam-meta">
-        <span>${exam.parts.length} Part • ${totalQ} sual</span>
-        ${statusHtml}
-      </div>
-      ${alreadyTaken 
-        ? `<div style="margin-top:10px;font-size:12px;color:#2563eb;font-weight:600">📜 Nəticəni görmək üçün klikləyin</div>` 
-        : `<div style="margin-top:10px;font-size:12px;color:#16a34a;font-weight:600">▶️ Başlamaq üçün klikləyin</div>`
-      }
-    `;
     grid.appendChild(card);
   });
 }
 
-// ✅ YENİ: Şagird öz nəticəsini görsün
-async function viewMyResult(examId){
+async function viewExamCarnet(examId){
   currentExamId = examId;
-  document.getElementById('examListPage').classList.add('hidden');
-  document.getElementById('carnetPage').classList.remove('hidden');
-  hideExamNavButtons();
   await showCarnet();
 }
 
-function startExam(examId){
-  if(currentUser.scores && currentUser.scores[examId]){
-    alert('⚠️ Siz bu imtahanı artıq tamamlamısınız. Hər şagird bir imtahana yalnız 1 dəfə girə bilər.');
+async function startExam(examId){
+  // ✅ 1 DƏFƏLİK İŞTİRAK YOXLAMASI:
+  const scores = await dbQuery('scores', { user_id: currentUser.id, exam_id: examId });
+  const hasLocal = currentUser.scores && currentUser.scores[examId];
+  if((scores && scores.length > 0) || hasLocal){
+    alert('⚠️ Diqqət: Siz bu imtahanda artıq iştirak etmisiniz!\n\nQaydalara əsasən hər imtahanda yalnız 1 dəfə iştirak etmək hüququnuz var. İndi sizin həmin imtahan üzrə nəticə vərəqiniz açılır.');
+    viewExamCarnet(examId);
     return;
   }
+
   currentExamId = examId;
   currentModuleId = EXAMS[examId].parts[0];
   currentQ = 0; seconds = 0;
@@ -556,287 +596,247 @@ function renderQuestionNumbers(){
   const container = document.getElementById('questionNumbers');
   if(!container) return;
   let html = '<div class="q-numbers-grid">';
-  items.forEach((item, idx) => {
-    const num = item.num;
-    const answered = answers[num];
+  items.forEach((it, idx) => {
+    const isAnswered = answers[it.num] !== undefined && answers[it.num] !== '';
     const isCurrent = idx === currentQ;
-    let cls = 'q-num';
-    if(answered) cls += ' answered';
-    if(isCurrent) cls += ' current';
-    html += `<div class="${cls}" onclick="goToQuestion(${idx})">${num}</div>`;
+    html += `<div class="q-num ${isAnswered ? 'answered' : ''} ${isCurrent ? 'current' : ''}" onclick="goToQuestion(${idx})">${it.num}</div>`;
   });
   html += '</div>';
   container.innerHTML = html;
 }
 
-function goToQuestion(idx){ currentQ = idx; renderQuestion(); }
+function goToQuestion(idx){ currentQ = idx; renderQuestion(); renderText(); }
 
 function renderText(){
   const mod = getCurrentModule();
-  const answers = getAnswers();
-  const panel = document.getElementById('leftPanel');
-  let html = `<h2>${mod.title}</h2>`;
+  const left = document.getElementById('leftPanel');
+  if(!left) return;
+  let html = '';
+  if(mod.title) html += `<h2>${mod.title}</h2>`;
   if(mod.subtitle) html += `<div class="subtitle">${mod.subtitle}</div>`;
-  html += `<div class="instructions">${mod.instructions}</div>`;
+  if(mod.instructions) html += `<div class="instructions">${mod.instructions}</div>`;
   if(currentModuleId==='part1'){
-    html += `<div class="article">`;
+    html += '<div class="article">';
     mod.paragraphs.forEach(p => {
-      let text = p.replace(/\(0\) \[keeps\]/g, '<span class="gap-inline"><span class="gap-num" style="background:#9ca3af">0</span><span class="gap-box example">keeps</span></span>');
-      mod.questions.forEach(q => {
-        const regex = new RegExp(`\\(${q.num}\\)\\s*_______`, 'g');
-        const val = answers[q.num] || '';
-        let cls = val ? 'gap-box filled' : 'gap-box empty';
-        let numCls = q.num === mod.questions[currentQ]?.num ? 'gap-num active-gap' : 'gap-num';
-        text = text.replace(regex, `<span class="gap-inline"><span class="${numCls}">${q.num}</span><span class="${cls}">${val || '___'}</span></span>`);
+      let t = p.replace(/\((\d+)\)\s*_{3,}/g, (match, num) => {
+        const answers = getAnswers();
+        const ans = answers[num];
+        const isCurrent = mod.questions[currentQ]?.num === parseInt(num);
+        return `<span class="gap-inline"><span class="gap-num ${isCurrent ? 'active-gap' : ''}">${num}</span><span class="gap-box ${ans ? 'filled' : 'empty'}">${ans || '___'}</span></span>`;
       });
-      html += `<p>${text}</p>`;
+      html += `<p>${t}</p>`;
     });
-    html += `</div>`;
-  } else if(currentModuleId==='part2'){
-    html += `<div class="article">`;
+    html += '</div>';
+  } else if(['part2','part3'].includes(currentModuleId)){
+    html += '<div class="article">';
     mod.paragraphs.forEach(p => {
-      let text = p.replace(/\(0\) ALL/g, '<span class="gap-inline"><span class="gap-num" style="background:#9ca3af">0</span><span class="gap-box example">ALL</span></span>');
-      mod.gaps.forEach(g => {
-        const regex = new RegExp(`\\(${g.num}\\)`, 'g');
-        const val = answers[g.num] || '';
-        let cls = val ? 'gap-box filled' : 'gap-box empty';
-        let numCls = g.num === mod.gaps[currentQ]?.num ? 'gap-num active-gap' : 'gap-num';
-        text = text.replace(regex, `<span class="gap-inline"><span class="${numCls}">${g.num}</span><span class="${cls}">${val || '___'}</span></span>`);
+      let t = p.replace(/\((\d+)\)\s*_{3,}/g, (match, num) => {
+        const answers = getAnswers();
+        const ans = answers[num];
+        const isCurrent = mod.gaps[currentQ]?.num === parseInt(num);
+        return `<span class="gap-inline"><span class="gap-num ${isCurrent ? 'active-gap' : ''}">${num}</span><span class="gap-box ${ans ? 'filled' : 'empty'}">${ans || '___'}</span></span>`;
       });
-      html += `<p>${text}</p>`;
+      html += `<p>${t}</p>`;
     });
-    html += `</div>`;
-  } else if(currentModuleId==='part3'){
-    html += `<div style="background:linear-gradient(135deg,#1a1a2e 0%,#2d2d4e 100%);border-radius:10px;padding:18px 22px;margin-bottom:22px;color:#fff;"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:#fbbf24;margin-bottom:12px;font-weight:700;">📋 Key Words</h4><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">`;
-    mod.keywords.forEach(k => { html += `<div style="background:rgba(255,255,255,0.1);border-radius:6px;padding:6px 10px;display:flex;align-items:center;gap:8px;font-size:13px;"><div style="background:#fbbf24;color:#1a1a2e;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;">${k.num}</div><div style="font-weight:700;">${k.word}</div></div>`; });
-    html += `</div></div><div class="article">`;
-    mod.paragraphs.forEach(p => {
-      let text = p.replace(/\(0\) SUITABLE/g, '<span class="gap-inline"><span class="gap-num" style="background:#9ca3af">0</span><span class="gap-box example">SUITABLE</span></span>');
-      mod.gaps.forEach(g => {
-        const regex = new RegExp(`\\(${g.num}\\)`, 'g');
-        const val = answers[g.num] || '';
-        let cls = val ? 'gap-box filled' : 'gap-box empty';
-        let numCls = g.num === mod.gaps[currentQ]?.num ? 'gap-num active-gap' : 'gap-num';
-        text = text.replace(regex, `<span class="gap-inline"><span class="${numCls}">${g.num}</span><span class="${cls}">${val || '___'}</span></span>`);
-      });
-      html += `<p>${text}</p>`;
-    });
-    html += `</div>`;
+    html += '</div>';
   } else if(currentModuleId==='part4'){
-    html += `<div class="article">`;
-    mod.questions.forEach(q => {
-      const val = answers[q.num] || '';
-      let cls = val ? 'gap-box filled' : 'gap-box empty';
-      let numCls = q.num === mod.questions[currentQ]?.num ? 'gap-num active-gap' : 'gap-num';
-      html += `<p style="margin-bottom:12px;"><strong style="color:#1a1a2e;">${q.num}.</strong> ${q.original}<br><span style="display:inline-block;background:#1a1a2e;color:#fbbf24;padding:3px 14px;border-radius:3px;font-weight:bold;font-size:14px;margin:6px 0;letter-spacing:1px;">${q.keyword}</span><br>${q.sentenceStart} <span class="gap-inline"><span class="${numCls}">${q.num}</span><span class="${cls}">${val || '___'}</span></span> ${q.sentenceEnd}</p>`;
-    });
-    html += `</div>`;
+    html += '<div class="article"><p style="font-size:14px;color:#666">Hər sual üçün açar sözdən istifadə edərək cümləni tamamlayın.</p></div>';
   } else if(currentModuleId==='part5'){
-    html += `<div class="article">`;
-    mod.paragraphs.forEach((p, idx) => { html += `<p><span style="display:inline-block;background:#1a1a2e;color:#fbbf24;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;margin-right:6px;vertical-align:middle;">§${idx+1}</span>${p}</p>`; });
-    html += `</div>`;
+    html += '<div class="article">';
+    mod.paragraphs.forEach(p => { html += `<p>${p}</p>`; });
+    html += '</div>';
   } else if(currentModuleId==='part6'){
-    html += `<div class="article">`;
+    html += '<div class="article">';
     mod.paragraphs.forEach(p => {
-      let text = p;
-      mod.gaps.forEach(g => {
-        const regex = new RegExp(`\\[${g.num}\\]______`, 'g');
-        const val = answers[g.num] || '';
-        let cls = val ? 'gap-box filled' : 'gap-box empty';
-        let numCls = g.num === mod.gaps[currentQ]?.num ? 'gap-num active-gap' : 'gap-num';
-        text = text.replace(regex, `<span class="gap-inline"><span class="${numCls}">${g.num}</span><span class="${cls}">${val || '___'}</span></span>`);
+      let t = p.replace(/\((\d+)\)\s*_{3,}/g, (match, num) => {
+        const answers = getAnswers();
+        const ans = answers[num];
+        const isCurrent = mod.questions[currentQ]?.num === parseInt(num);
+        return `<span class="gap-inline"><span class="gap-num ${isCurrent ? 'active-gap' : ''}">${num}</span><span class="gap-box ${ans ? 'filled' : 'empty'}">${ans || '___'}</span></span>`;
       });
-      html += `<p>${text}</p>`;
+      html += `<p>${t}</p>`;
     });
-    html += `</div>`;
+    html += '</div>';
   } else if(currentModuleId==='part7'){
-    const q = mod.questions[currentQ];
-    const val = answers[q.num] || '';
-    html += `<div style="background:#fff;border:2px solid #e5e7eb;border-radius:12px;padding:20px 24px;margin-top:10px;"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;"><div style="background:#1a1a2e;color:#fbbf24;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;">${q.num}</div><div style="font-size:15px;font-weight:600;color:#1a1a2e;line-height:1.4;">${q.text}</div></div><div style="display:flex;gap:10px;padding-left:44px;">`;
-    ['A','B','C','D'].forEach(l => {
-      let bg = val===l ? '#2563eb' : '#fff', br = val===l ? '#2563eb' : '#e5e7eb', co = val===l ? '#fff' : '#6b7280';
-      html += `<div onclick="selectPerson(${q.num},'${l}')" style="width:44px;height:44px;border:2px solid ${br};border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:${co};cursor:pointer;transition:all 0.15s;background:${bg};">${l}</div>`;
+    html += '<div class="article">';
+    Object.entries(mod.people).forEach(([key, person]) => {
+      html += `<div style="margin-bottom:20px;padding:15px;background:#f9fafb;border-radius:8px;border-left:4px solid #1a1a2e"><h4 style="font-family:'Merriweather',serif;color:#1a1a2e;margin-bottom:8px">${person.name} (${key})</h4><p style="font-size:14px;line-height:1.7;color:#444">${person.text}</p></div>`;
     });
-    html += `</div></div>`;
+    html += '</div>';
   }
-  panel.innerHTML = html;
+  left.innerHTML = html;
 }
 
 function renderQuestion(){
   const mod = getCurrentModule();
-  const answers = getAnswers();
-  const container = document.getElementById('qContent');
-  if(currentModuleId==='part1' || currentModuleId==='part5'){
-    const q = mod.questions[currentQ];
-    const val = answers[q.num] || '';
-    const titleText = currentModuleId==='part5' ? q.text : 'Boşluq üçün ən uyğun variantı seçin';
-    let html = `<div class="q-card"><div class="q-card-header"><div class="q-number">${q.num}</div><div class="q-title">${titleText}</div></div><ul class="q-options">`;
-    Object.entries(q.options).forEach(([letter, text]) => {
-      let cls = val===letter ? 'q-option selected' : 'q-option';
-      html += `<li class="${cls}" onclick="selectOption('${letter}')"><div class="opt-radio"></div><span class="opt-letter">${letter}</span><span class="opt-text">${text}</span></li>`;
-    });
-    html += `</ul></div>`;
-    container.innerHTML = html;
-  } else if(currentModuleId==='part2' || currentModuleId==='part3'){
-    const g = mod.gaps[currentQ];
-    const val = answers[g.num] || '';
-    let ctx = '';
-    mod.paragraphs.forEach(p => {
-      const regex = new RegExp(`\\(${g.num}\\)`);
-      if(regex.test(p)){
-        p.split('. ').forEach(s => {
-          if(regex.test(s)){
-            ctx = s.replace(/\(\d+\)/g, '___').replace(new RegExp(`\\(${g.num}\\)`, 'g'), '<span class="context-gap">___</span>');
-            if(!ctx.endsWith('.')) ctx += '.';
-          }
-        });
-      }
-    });
-    let html = `<div class="q-card"><div class="q-card-header"><div class="q-number">${g.num}</div><div class="q-title">${currentModuleId==='part2' ? 'Boşluğu doldurun (1 söz)' : 'Verilən sözdən yeni söz düzəldin'}</div></div><div class="q-context">${ctx}</div>`;
-    if(currentModuleId==='part3' && g.given) html += `<div class="q-word-given"><span class="kw-label">Verilən söz:</span>${g.given}</div>`;
-    html += `<div class="q-input-area"><label>Cavabınız</label><input type="text" class="q-main-input" id="mainInput" value="${val}" placeholder="cavabı yazın..." autocomplete="off" spellcheck="false" oninput="onInput(this.value)" onkeydown="onKeydown(event)"><div class="q-hint-text">${currentModuleId==='part2' ? '💡 Yalnız 1 söz yazın' : '💡 Verilən sözdən kök dəyişərək yeni söz düzəldin'}</div></div></div>`;
-    container.innerHTML = html;
-    setTimeout(() => { const inp = document.getElementById('mainInput'); if(inp){ inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); } }, 50);
-  } else if(currentModuleId==='part4'){
-    const q = mod.questions[currentQ];
-    const val = answers[q.num] || '';
-    let html = `<div class="q-card"><div class="q-card-header"><div class="q-number">${q.num}</div><div class="q-title">İkinci cümləni tamamlayın</div></div><div class="q-context" style="font-style:italic;">"${q.original}"</div><div style="text-align:center;margin-bottom:16px;"><span style="display:inline-block;background:#1a1a2e;color:#fbbf24;padding:4px 14px;border-radius:6px;font-weight:700;font-size:15px;letter-spacing:1px;">${q.keyword}</span></div><div class="q-input-area"><label>Cavabınız (2-5 söz, böyük hərflərlə)</label><input type="text" class="q-main-input" id="mainInput" value="${val}" placeholder="cavabı yazın..." autocomplete="off" spellcheck="false" oninput="onInput(this.value)" onkeydown="onKeydown(event)"><div class="q-hint-text">💡 2-5 söz, böyük hərflərlə</div></div><div style="background:#f9fafb;padding:12px;border-radius:8px;font-size:13px;color:#555;line-height:1.6;margin-bottom:12px;">${q.sentenceStart} <strong style="color:#1a1a2e;">[___]</strong> ${q.sentenceEnd}</div></div>`;
-    container.innerHTML = html;
-    setTimeout(() => { const inp = document.getElementById('mainInput'); if(inp){ inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); } }, 50);
-  } else if(currentModuleId==='part6'){
-    const g = mod.gaps[currentQ];
-    const val = answers[g.num] || '';
-    let html = `<div class="q-card"><div class="q-card-header"><div class="q-number">${g.num}</div><div class="q-title">Boşluq üçün cümlə seçin</div></div><div class="q-context">Mətndəki <strong>[${g.num}]</strong> nömrəli boşluğa hansı cümlə uyğundur?</div><ul class="q-options">`;
-    Object.entries(sentences).forEach(([letter, text]) => {
-      let cls = val===letter ? 'q-option selected' : 'q-option';
-      html += `<li class="${cls}" onclick="selectSentence('${letter}')"><div class="opt-radio"></div><span class="opt-letter">${letter}</span><span class="opt-text">${text}</span></li>`;
-    });
-    html += `</ul></div>`;
-    container.innerHTML = html;
-  } else if(currentModuleId==='part7'){
-    const q = mod.questions[currentQ];
-    const val = answers[q.num] || '';
-    const rp = document.getElementById('rightPanelScroll');
-    let rhtml = `<h3 style="font-family:'Merriweather',serif;font-size:15px;color:#1a1a2e;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid #1a1a2e;">👤 Şəxslər <span style="font-size:11px;color:#9ca3af;font-weight:400;margin-left:8px;font-family:'Inter',sans-serif;">(kardı klikləyin)</span></h3>`;
-    Object.entries(mod.people).forEach(([letter, person]) => {
-      let bc='transparent', blc='#1a1a2e', bg='#fff', bs='0 2px 8px rgba(0,0,0,0.05)', lb='#1a1a2e', lc='#fbbf24';
-      if(val===letter){ bc='#2563eb'; blc='#2563eb'; bg='#eff6ff'; bs='0 4px 12px rgba(37,99,235,0.15)'; lb='#2563eb'; lc='#fff'; }
-      rhtml += `<div onclick="selectPersonFromCard(${q.num},'${letter}')" style="background:${bg};border-radius:10px;padding:14px;margin-bottom:12px;box-shadow:${bs};border:2px solid ${bc};border-left:4px solid ${blc};cursor:pointer;transition:all 0.2s;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span style="display:inline-flex;align-items:center;justify-content:center;background:${lb};color:${lc};width:26px;height:26px;border-radius:50%;font-weight:800;font-size:12px;">${letter}</span><span style="font-weight:700;font-size:14px;color:#1a1a2e;">${person.name}</span></div><div style="font-family:'Merriweather',serif;font-size:12px;line-height:1.6;color:#444;">${person.text}</div></div>`;
-    });
-    rp.innerHTML = rhtml;
-  }
-  const btnPrev = document.getElementById('btnPrev');
-  const btnNext = document.getElementById('btnNext');
-  if(btnPrev) btnPrev.disabled = currentQ === 0;
-  if(btnNext){
-    const totalQ = getTotalQuestions(mod);
-    if(currentQ === totalQ - 1){ btnNext.textContent = 'Modulu Bitir ✓'; btnNext.className = 'nav-btn btn-finish'; }
-    else { btnNext.textContent = 'Növbəti →'; btnNext.className = 'nav-btn btn-next'; }
-  }
-  renderQuestionNumbers();
   document.getElementById('moduleNum').textContent = mod.moduleNum;
-  document.getElementById('moduleTitle').textContent = mod.moduleTitle;
-  document.getElementById('moduleSubtitle').textContent = mod.moduleSubtitle;
-  const totalQ = getTotalQuestions(mod);
-  const answered = getAnsweredCount(mod);
-  document.getElementById('progressFill').style.width = ((answered/totalQ)*100) + '%';
-  document.getElementById('progressText').textContent = `${answered}/${totalQ}`;
+  document.getElementById('moduleTitle').textContent = `Part ${mod.moduleNum}`;
+  document.getElementById('moduleSubtitle').textContent = mod.moduleSubtitle || '';
+  if(currentModuleId==='part7'){ renderPart7(); return; }
+  const qContent = document.getElementById('qContent');
+  if(!qContent) return;
+  const items = mod.questions || mod.gaps;
+  const item = items[currentQ];
+  const answers = getAnswers();
+  let html = `<div class="q-card"><div class="q-card-header"><div class="q-number">${item.num}</div><div class="q-title">${item.text || mod.moduleTitle}</div></div>`;
+  if(currentModuleId==='part1'){
+    html += `<ul class="q-options">`;
+    Object.entries(item.options).forEach(([optKey, optText]) => {
+      const isSelected = answers[item.num] === optKey;
+      html += `<li class="q-option ${isSelected ? 'selected' : ''}" onclick="selectOption('${optKey}')"><div class="opt-radio"></div><span class="opt-letter">${optKey}</span><span class="opt-text">${optText}</span></li>`;
+    });
+    html += `</ul>`;
+  } else if(['part2','part3'].includes(currentModuleId)){
+    if(item.given) html += `<div class="q-word-given"><span class="kw-label">Açar söz:</span> ${item.given}</div>`;
+    html += `<div class="q-input-area"><label>Cavabınız:</label><input type="text" class="q-main-input" id="gapInput" value="${answers[item.num] || ''}" oninput="handleInput(this.value)" placeholder="CAVAB"></div>`;
+  } else if(currentModuleId==='part4'){
+    html += `<div style="background:#f9fafb;padding:15px;border-radius:8px;margin-bottom:15px"><div style="font-size:14px;color:#333;margin-bottom:10px">${item.first}</div><div class="q-word-given"><span class="kw-label">Açar söz:</span> ${item.keyword}</div><div style="font-size:14px;color:#333">${item.secondPre} <span style="font-weight:700;color:#2563eb">[ ... ]</span> ${item.secondPost}</div></div><div class="q-input-area"><label>Tamamlayın (2-5 söz):</label><input type="text" class="q-main-input" id="gapInput" value="${answers[item.num] || ''}" oninput="handleInput(this.value)" placeholder="BURAYA YAZIN"></div>`;
+  } else if(currentModuleId==='part5'){
+    html += `<ul class="q-options">`;
+    Object.entries(item.options).forEach(([optKey, optText]) => {
+      const isSelected = answers[item.num] === optKey;
+      html += `<li class="q-option ${isSelected ? 'selected' : ''}" onclick="selectOption('${optKey}')"><div class="opt-radio"></div><span class="opt-letter">${optKey}</span><span class="opt-text">${optText}</span></li>`;
+    });
+    html += `</ul>`;
+  } else if(currentModuleId==='part6'){
+    html += `<div style="font-size:13px;color:#666;margin-bottom:12px">Boşluq üçün uyğun cümləni seçin:</div><ul class="q-options">`;
+    Object.entries(mod.options).forEach(([optKey, optText]) => {
+      const isSelected = answers[item.num] === optKey;
+      html += `<li class="q-option ${isSelected ? 'selected' : ''}" onclick="selectOption('${optKey}')"><div class="opt-radio"></div><span class="opt-letter">${optKey}</span><span class="opt-text">${optText}</span></li>`;
+    });
+    html += `</ul>`;
+  }
+  html += `</div>`;
+  qContent.innerHTML = html;
+  const inp = document.getElementById('gapInput');
+  if(inp){ inp.focus(); }
+  updateNav(); renderQuestionNumbers(); updateProgress();
 }
 
-function getTotalQuestions(mod){ return (mod.questions || mod.gaps || []).length; }
-function getAnsweredCount(mod){ const answers = getAnswers(); const items = mod.questions || mod.gaps || []; return items.filter(it => answers[it.num]).length; }
-
-function selectOption(letter){
-  if(isTransitioning) return;
+function renderPart7(){
   const mod = getCurrentModule();
-  const q = mod.questions[currentQ];
+  const scroll = document.getElementById('rightPanelScroll');
+  if(!scroll) return;
   const answers = getAnswers();
-  if(answers[q.num] === letter) return;
-  answers[q.num] = letter;
+  let html = `<div style="display:flex;flex-direction:column;gap:15px">`;
+  mod.questions.forEach((q, idx) => {
+    const ans = answers[q.num];
+    html += `<div class="q-card" style="padding:15px"><div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px"><div class="q-number" style="width:32px;height:32px;font-size:13px">${q.num}</div><div style="font-size:13px;font-weight:600;color:#1a1a2e;line-height:1.4">${q.text}</div></div><div style="display:flex;gap:6px">`;
+    ['A','B','C','D'].forEach(opt => {
+      const isSelected = ans === opt;
+      html += `<button class="nav-btn ${isSelected ? 'btn-next' : 'btn-prev'}" style="padding:6px 12px;font-size:12px" onclick="selectPart7Option(${q.num}, '${opt}')">${opt}</button>`;
+    });
+    html += `</div></div>`;
+  });
+  html += `</div>`;
+  scroll.innerHTML = html;
+  updateNav(); renderQuestionNumbers(); updateProgress();
+}
+
+function selectPart7Option(qNum, opt){
+  const answers = getAnswers();
+  answers[qNum] = opt;
   saveSession(currentUser);
-  renderText(); renderQuestion();
+  renderPart7(); renderText();
+  if(isModuleComplete()) showTransitionScreen();
+}
+
+function selectOption(optKey){
+  const mod = getCurrentModule();
+  const items = mod.questions || mod.gaps;
+  const item = items[currentQ];
+  const answers = getAnswers();
+  answers[item.num] = optKey;
+  saveSession(currentUser);
+  renderQuestion(); renderText();
   clearTimeout(autoAdvanceTimer);
-  autoAdvanceTimer = setTimeout(() => {
-    if(currentQ === mod.questions.length - 1) showTransitionConfirmation();
-    else { currentQ++; renderQuestion(); }
-  }, 300);
+  if(currentQ < items.length - 1){
+    autoAdvanceTimer = setTimeout(() => { nextQuestion(); }, 400);
+  } else {
+    if(isModuleComplete()) setTimeout(showTransitionScreen, 500);
+  }
 }
 
-function selectSentence(letter){
-  if(isTransitioning) return;
+function handleInput(val){
   const mod = getCurrentModule();
-  const g = mod.gaps[currentQ];
+  const items = mod.questions || mod.gaps;
+  const item = items[currentQ];
   const answers = getAnswers();
-  if(answers[g.num] === letter) return;
-  answers[g.num] = letter;
+  answers[item.num] = val.toUpperCase();
   saveSession(currentUser);
-  renderText(); renderQuestion();
-  clearTimeout(autoAdvanceTimer);
-  autoAdvanceTimer = setTimeout(() => {
-    if(currentQ === mod.gaps.length - 1) showTransitionConfirmation();
-    else { currentQ++; renderQuestion(); }
-  }, 300);
+  renderText(); updateProgress(); renderQuestionNumbers();
 }
 
-function selectPerson(qNum, letter){
-  const answers = getAnswers();
-  if(answers[qNum] === letter) return;
-  answers[qNum] = letter;
-  saveSession(currentUser);
-  renderText(); renderQuestion();
+function updateNav(){
   const mod = getCurrentModule();
-  clearTimeout(autoAdvanceTimer);
-  autoAdvanceTimer = setTimeout(() => {
-    if(currentQ === mod.questions.length - 1) showTransitionConfirmation();
-    else { currentQ++; renderText(); renderQuestion(); }
-  }, 400);
+  const items = mod.questions || mod.gaps;
+  const prevBtn = document.getElementById('btnPrev');
+  const nextBtn = document.getElementById('btnNext');
+  if(!prevBtn || !nextBtn) return;
+  prevBtn.disabled = currentQ === 0;
+  if(currentQ === items.length - 1){
+    const nextId = getNextModuleId();
+    nextBtn.textContent = nextId ? 'Növbəti Part →' : 'Tamamla 🏁';
+    nextBtn.className = 'nav-btn btn-finish';
+  } else {
+    nextBtn.textContent = 'Növbəti →';
+    nextBtn.className = 'nav-btn btn-next';
+  }
 }
 
-function selectPersonFromCard(q, l){ selectPerson(q, l); }
-
-function onInput(val){
-  const mod = getCurrentModule();
-  const num = (mod.questions || mod.gaps)[currentQ].num;
-  const answers = getAnswers();
-  answers[num] = val;
-  saveSession(currentUser);
-  renderText();
-}
-
-function onKeydown(e){ if(e.key === 'Enter'){ e.preventDefault(); nextQuestion(); } }
+function prevQuestion(){ if(currentQ > 0){ currentQ--; renderQuestion(); renderText(); } }
 
 function nextQuestion(){
   const mod = getCurrentModule();
-  const totalQ = getTotalQuestions(mod);
-  if(currentQ === totalQ - 1) showTransitionConfirmation();
-  else { currentQ++; renderQuestion(); if(currentModuleId === 'part7') renderText(); }
+  const items = mod.questions || mod.gaps;
+  if(currentQ < items.length - 1){
+    currentQ++; renderQuestion(); renderText();
+  } else {
+    showTransitionScreen();
+  }
 }
 
-function prevQuestion(){
-  clearTimeout(autoAdvanceTimer);
-  if(currentQ > 0){ currentQ--; renderQuestion(); if(currentModuleId === 'part7') renderText(); }
+function updateProgress(){
+  const mod = getCurrentModule();
+  const items = mod.questions || mod.gaps;
+  const answers = getAnswers();
+  const answered = items.filter(it => answers[it.num] !== undefined && answers[it.num] !== '').length;
+  const total = items.length;
+  const pct = Math.round((answered / total) * 100);
+  const fill = document.getElementById('progressFill');
+  const text = document.getElementById('progressText');
+  if(fill) fill.style.width = `${pct}%`;
+  if(text) text.textContent = `${answered}/${total}`;
+}
+
+function isModuleComplete(){
+  const mod = getCurrentModule();
+  const items = mod.questions || mod.gaps;
+  const answers = getAnswers();
+  return items.every(it => answers[it.num] !== undefined && answers[it.num] !== '');
 }
 
 function getNextModuleId(){
-  const examParts = EXAMS[currentExamId].parts;
-  const curIdx = examParts.indexOf(currentModuleId);
-  if(curIdx < examParts.length - 1) return examParts[curIdx + 1];
-  return null;
+  const exam = EXAMS[currentExamId];
+  const idx = exam.parts.indexOf(currentModuleId);
+  return idx < exam.parts.length - 1 ? exam.parts[idx + 1] : null;
 }
 
-function showTransitionConfirmation(){
+function showTransitionScreen(){
   const mod = getCurrentModule();
-  const totalQ = getTotalQuestions(mod);
-  const answered = getAnsweredCount(mod);
-  const nextId = getNextModuleId();
+  const items = mod.questions || mod.gaps;
+  const answers = getAnswers();
+  const answered = items.filter(it => answers[it.num] !== undefined && answers[it.num] !== '').length;
+  const remaining = items.length - answered;
   document.getElementById('statAnswered').textContent = answered;
-  document.getElementById('statRemaining').textContent = totalQ - answered;
-  document.getElementById('statModule').textContent = `${mod.moduleNum}/7`;
+  document.getElementById('statRemaining').textContent = remaining;
+  document.getElementById('statModule').textContent = `Part ${mod.moduleNum}`;
+  const nextId = getNextModuleId();
   if(nextId){
     const nextMod = MODULES[nextId];
     document.getElementById('tTitle').textContent = `Part ${mod.moduleNum} Tamamlandı!`;
-    document.getElementById('tText').textContent = `Part ${mod.moduleNum}-i bitirdiniz. Part ${nextMod.moduleNum}-yə keçmək istəyirsiniz?`;
-    document.getElementById('btnContinue').textContent = `Part ${nextMod.moduleNum}-yə Keç →`;
+    document.getElementById('tText').textContent = `Növbəti: Part ${nextMod.moduleNum} — ${nextMod.moduleTitle}`;
+    document.getElementById('btnContinue').textContent = `Part ${nextMod.moduleNum}-ə Keç →`;
     document.getElementById('btnContinue').onclick = continueToNext;
   } else {
     document.getElementById('tTitle').textContent = `İmtahan Tamamlandı!`;
@@ -868,7 +868,7 @@ async function showFinalResults(){
   const pointsMap = {};
   pointsData.forEach(p => {
     if(!pointsMap[p.part_id]) pointsMap[p.part_id] = {};
-    pointsMap[p.part_id][p.question_num] = p.points;
+    pointsMap[p.part_id][p.question_num] = parseFloat(p.points) || 1;
   });
   let totalCorrect = 0, totalPoints = 0, earnedPoints = 0, totalQ = 0;
   const breakdown = [], review = [];
@@ -879,7 +879,7 @@ async function showFinalResults(){
     let pCorrect = 0, pEarned = 0;
     for(const it of items){
       totalQ++;
-      const pt = pointsMap[pid]?.[it.num] ?? 1;
+      const pt = parseFloat(pointsMap[pid]?.[it.num]) || 1;
       totalPoints += pt;
       let correct = false;
       if(m.questions && m.questions.includes(it)) correct = answers[it.num] === it.answer;
@@ -887,7 +887,7 @@ async function showFinalResults(){
       if(correct){ pCorrect++; pEarned += pt; totalCorrect++; }
       review.push({ part: pid, num: it.num, userAns: answers[it.num] || '—', correct: correct, answer: it.answer, points: pt, earned: correct ? pt : 0, given: it.given, personName: pid === 'part7' ? m.people[it.answer]?.name : null, explanation: it.explanation });
     }
-    breakdown.push({ label: `Part ${m.moduleNum}`, score: pCorrect, total: items.length, points: pEarned, maxPoints: items.reduce((s, it) => s + (pointsMap[pid]?.[it.num] ?? 1), 0) });
+    breakdown.push({ label: `Part ${m.moduleNum}`, score: pCorrect, total: items.length, points: pEarned, maxPoints: items.reduce((s, it) => s + (parseFloat(pointsMap[pid]?.[it.num]) || 1), 0) });
     earnedPoints += pEarned;
   }
   const pct = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0;
@@ -937,10 +937,10 @@ async function showFinalResults(){
   stopTimer();
 }
 
-// ✅ TAM DÜZƏLDİLMİŞ: ?. optional chaining ilə
 async function showCarnet(){
   document.getElementById('resultsScreen')?.classList.remove('show');
   document.getElementById('examPage')?.classList.add('hidden');
+  document.getElementById('examListPage')?.classList.add('hidden');
   document.getElementById('carnetPage')?.classList.remove('hidden');
   hideExamNavButtons();
   let examId = currentExamId;
@@ -950,10 +950,25 @@ async function showCarnet(){
   }
   if(!examId){ alert('Nəticə tapılmadı!'); backToExams(); return; }
   currentExamId = examId;
-  const scores = await dbQuery('scores', { user_id: currentUser.id, exam_id: examId });
-  if(scores.length === 0){ alert('Nəticə tapılmadı!'); backToExams(); return; }
-  const score = scores[0];
-  const answers = await dbQuery('answers', { score_id: score.id });
+  let scores = await dbQuery('scores', { user_id: currentUser.id, exam_id: examId });
+  let score = scores.length > 0 ? scores[0] : null;
+  if(!score && currentUser.scores && currentUser.scores[examId]){
+    const sc = currentUser.scores[examId];
+    score = { id: 'local_' + examId, user_id: currentUser.id, exam_id: examId, total_points: sc.points, max_points: sc.maxPoints, percent: sc.percent, grade: sc.grade, created_at: new Date(sc.date).toISOString() };
+  }
+  if(!score){ alert('Nəticə tapılmadı!'); backToExams(); return; }
+  let answers = await dbQuery('answers', { score_id: score.id });
+  if((!answers || answers.length === 0) && currentUser.scores && currentUser.scores[examId]?.review){
+    answers = currentUser.scores[examId].review.map(r => ({
+      part_id: r.part,
+      question_num: r.num,
+      user_answer: r.userAns,
+      correct_answer: r.answer,
+      is_correct: r.correct,
+      points: r.earned,
+      max_points: r.points
+    }));
+  }
   const exam = EXAMS[examId];
   const date = new Date(score.created_at).toLocaleString('az-AZ');
   let html = `<div class="carnet-card"><div class="carnet-header"><div class="school">CAMBRIDGE FCE PLATFORM</div><h1>📜 NƏTİCƏ VƏRƏQİ</h1><div style="font-size:14px;color:#6b7280;margin-top:6px">${exam.title}</div></div><div class="carnet-student"><div><strong>Ad Soyad:</strong> ${currentUser.name}</div><div><strong>Email:</strong> ${currentUser.email}</div><div><strong>Tarix:</strong> ${date}</div></div><div class="carnet-total"><div class="total-label">Nəticə</div><div class="grade-badge grade-${score.grade}" style="font-size:24px">${score.total_points}/${score.max_points} (${score.percent}%)</div></div><table class="carnet-table"><thead><tr><th>Part</th><th>Sual</th><th>Cavab</th><th>Düzgün</th><th>Bal</th></tr></thead><tbody>`;
@@ -966,12 +981,11 @@ async function showCarnet(){
   document.getElementById('carnetPage').innerHTML = html;
 }
 
-// ✅ TAM DÜZƏLDİLMİŞ: ?. optional chaining ilə
 function backToExams(){
-  document.getElementById('examPage')?.classList.add('hidden');
-  document.getElementById('carnetPage')?.classList.add('hidden');
-  document.getElementById('adminPage')?.classList.add('hidden');
-  document.getElementById('markerDashboard')?.classList.add('hidden');
+  document.getElementById('examPage').classList.add('hidden');
+  document.getElementById('carnetPage').classList.add('hidden');
+  document.getElementById('adminPage').classList.add('hidden');
+  document.getElementById('markerDashboard').classList.add('hidden');
   document.getElementById('resultsScreen')?.classList.remove('show');
   hideExamNavButtons();
   showExamList();
@@ -1033,75 +1047,62 @@ async function handlePDFUpload(event){
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     let fullText = '';
-    for(let i = 1; i <= pdf.numPages; i++){
+    for(let i=1; i<=pdf.numPages; i++){
       const page = await pdf.getPage(i);
       const textContent = await page.getTextContent();
       const pageText = textContent.items.map(item => item.str).join(' ');
       fullText += pageText + '\n';
     }
-    statusEl.textContent = `✅ PDF uğurla oxundu! (${pdf.numPages} səhifə, ${fullText.length} simvol)`;
-    parsePDFAndCreateExam(fullText);
-  } catch(err){
-    console.error(err);
-    statusEl.textContent = '❌ Xəta: PDF oxuna bilmədi.';
+    statusEl.textContent = 'İmtahan yaradılır...';
+    const newExamId = 'exam_' + Date.now();
+    const examData = parsePDFAndCreateExam(fullText, newExamId, file.name);
+    EXAMS[newExamId] = examData;
+    statusEl.textContent = `✅ İmtahan uğurla yükləndi: ${examData.title}`;
+    renderAdminExams(); renderPointsExamSelect();
+  } catch(error){
+    console.error('PDF oxuma xətası:', error);
+    statusEl.textContent = '❌ Xəta baş verdi: PDF oxunmadı.';
   }
 }
 
-function parsePDFAndCreateExam(text) {
-  if (!text || text.trim().length === 0) {
-    alert('❌ PDF-dən mətn çıxarıla bilmədi.');
-    return;
-  }
-  alert(`✅ PDF oxundu! ${text.length} simvol.`);
+function parsePDFAndCreateExam(text, examId, fileName){
+  const title = fileName.replace('.pdf', '') || 'Yeni İmtahan';
+  return { id: examId, title: title, icon: '📄', description: 'Yüklənmiş PDF imtahanı', parts: ['part1','part2','part3','part4','part5','part6','part7'] };
 }
 
 async function renderAdminUsers(){
   const tbody = document.getElementById('usersTableBody');
   const users = await dbQuery('users');
   tbody.innerHTML = '';
-  for(const u of users){
-    const scores = await dbQuery('scores', { user_id: u.id });
-    const completed = scores.length;
-    const totalEarned = scores.reduce((sum, s) => sum + (s.total_points || 0), 0);
-    const totalMax = scores.reduce((sum, s) => sum + (s.max_points || 0), 0);
-    const balText = completed > 0 ? `${totalEarned}/${totalMax}` : '—';
+  for(const user of users){
+    const scores = await dbQuery('scores', { user_id: user.id });
+    const totalPoints = scores.reduce((sum, s) => sum + (s.total_points || 0), 0);
+    const maxPoints = scores.reduce((sum, s) => sum + (s.max_points || 0), 0);
+    const roleBadge = user.role === 'admin' ? '<span class="user-role role-admin">Admin</span>' : user.role === 'marker' ? '<span class="user-role role-marker">Marker</span>' : '<span class="user-role role-student">Şagird</span>';
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${u.name}</td><td>${u.email}</td><td><span class="user-role ${u.role==='admin' ? 'role-admin' : u.role==='marker' ? 'role-marker' : 'role-student'}">${u.role}</span></td><td>${completed} imtahan</td><td><strong style="color:#1a1a2e">${balText}</strong></td><td>${u.role !== 'admin' ? `<button class="btn-sm btn-view" onclick="viewUserAnswers('${u.email}')">Cavablar</button><button class="btn-sm btn-del" onclick="deleteUser('${u.email}')">Sil</button>` : ''}</td>`;
+    tr.innerHTML = `<td><strong>${user.name}</strong></td><td>${user.email}</td><td>${roleBadge}</td><td>${scores.length} imtahan</td><td>${totalPoints}/${maxPoints}</td><td><button class="btn-sm btn-view" onclick="viewUserResults('${user.email}')">Nəticələr</button>${user.email !== 'admin@fce.com' ? `<button class="btn-sm btn-del" onclick="deleteUser('${user.id}')">Sil</button>` : ''}</td>`;
     tbody.appendChild(tr);
   }
 }
 
-async function deleteUser(email){
-  if(email === 'admin@fce.com'){ alert('Admin silinə bilməz!'); return; }
-  if(!confirm('Bu istifadəçini silmək istədiyinizə əminsiniz?')) return;
-  const users = await dbQuery('users', { email: email });
-  if(users.length > 0) await dbDelete('users', users[0].id);
-  renderAdminUsers();
-}
-
-async function viewUserAnswers(email){
+async function viewUserResults(email){
   const users = await dbQuery('users', { email: email });
   if(users.length === 0) return;
   const user = users[0];
   const scores = await dbQuery('scores', { user_id: user.id });
-  if(scores.length === 0){ alert('Bu istifadəçinin hələ nəticəsi yoxdur.'); return; }
-  let html = `<div style="padding:20px"><h4 style="margin-bottom:16px;color:#1a1a2e">${user.name} — Cavablar</h4>`;
-  for(const sc of scores){
-    const exam = EXAMS[sc.exam_id];
-    const answers = await dbQuery('answers', { score_id: sc.id });
-    html += `<div style="margin-bottom:16px;padding:12px;background:#fff;border-radius:8px;border:1px solid #e5e7eb"><strong>${exam?.title || sc.exam_id}</strong> — ${sc.total_points}/${sc.max_points} bal (${sc.percent}%) — Qiymət: ${sc.grade}<br><small>${new Date(sc.created_at).toLocaleString('az-AZ')}</small>`;
-    if(answers.length > 0){
-      html += `<div style="margin-top:10px;max-height:300px;overflow-y:auto">`;
-      answers.forEach(a => {
-        html += `<div style="display:flex;justify-content:space-between;padding:6px;border-bottom:1px solid #e5e7eb;font-size:13px"><span style="font-weight:700;min-width:60px">${a.part_id}#${a.question_num}</span><span style="flex:1;color:${a.is_correct ? '#16a34a' : '#dc2626'};${a.is_correct ? '' : 'text-decoration:line-through'}">${a.user_answer || '—'}</span><span style="color:#16a34a;font-weight:700">${a.correct_answer} (${a.points}/${a.max_points})</span></div>`;
-      });
-      html += `</div>`;
-    }
-    html += `</div>`;
-  }
-  html += `</div>`;
-  const w = window.open('', '_blank', 'width=700,height=600');
-  w.document.write(`<html><head><title>${user.name} — Cavablar</title><style>body{font-family:Inter,sans-serif;padding:0;background:#f0f0eb}</style></head><body>${html}</body></html>`);
+  if(scores.length === 0){ alert(`${user.name} hələ heç bir imtahan verməyib.`); return; }
+  let msg = `📊 ${user.name} (${user.email})\n\n`;
+  scores.forEach(s => {
+    const exam = EXAMS[s.exam_id];
+    msg += `• ${exam?.title || s.exam_id}: ${s.total_points}/${s.max_points} (${s.percent}%) — Qiymət: ${s.grade}\n`;
+  });
+  alert(msg);
+}
+
+async function deleteUser(userId){
+  if(!confirm('Bu istifadəçini silmək istədiyinizə əminsiniz?')) return;
+  await dbDelete('users', userId);
+  renderAdminUsers();
 }
 
 function renderAdminExams(){
@@ -1110,7 +1111,7 @@ function renderAdminExams(){
   Object.values(EXAMS).forEach(exam => {
     const totalQ = exam.parts.reduce((s, pid) => s + (MODULES[pid].questions?.length || MODULES[pid].gaps?.length || 0), 0);
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td><strong>${exam.id}</strong></td><td>${exam.title}</td><td>${exam.parts.length} Part</td><td>${totalQ} sual</td>`;
+    tr.innerHTML = `<td><code>${exam.id}</code></td><td><strong>${exam.icon} ${exam.title}</strong></td><td>${exam.parts.length} Part</td><td>${totalQ} sual</td>`;
     tbody.appendChild(tr);
   });
 }
@@ -1118,20 +1119,23 @@ function renderAdminExams(){
 function renderPointsExamSelect(){
   const sel = document.getElementById('pointsExamSelect');
   sel.innerHTML = '';
-  Object.values(EXAMS).forEach(exam => { sel.innerHTML += `<option value="${exam.id}">${exam.title}</option>`; });
+  Object.values(EXAMS).forEach(exam => {
+    sel.innerHTML += `<option value="${exam.id}">${exam.title}</option>`;
+  });
   renderPointsEditor();
 }
 
 async function renderPointsEditor(){
   const examId = document.getElementById('pointsExamSelect').value;
   const exam = EXAMS[examId];
+  if(!exam) return;
+  const container = document.getElementById('pointsEditor');
   const pointsData = await dbQuery('exam_points', { exam_id: examId });
   const pointsMap = {};
   pointsData.forEach(p => {
     if(!pointsMap[p.part_id]) pointsMap[p.part_id] = {};
-    pointsMap[p.part_id][p.question_num] = p.points;
+    pointsMap[p.part_id][p.question_num] = parseFloat(p.points) || 1;
   });
-  const container = document.getElementById('pointsEditor');
   let html = '';
   exam.parts.forEach(pid => {
     const m = MODULES[pid];
@@ -1203,7 +1207,7 @@ async function viewCarnetFromAdmin(email, examId){
     const m = MODULES[a.part_id];
     html += `<tr style="background:${a.is_correct ? '#dcfce7' : '#fee2e2'}" id="reviewRow_${idx}"><td style="padding:12px;border-bottom:1px solid #e5e7eb">Part ${m.moduleNum}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.question_num}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.user_answer || '—'}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.correct_answer}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.is_correct ? '✅ Düzgün' : '❌ Səhv'}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">`;
     if(canEdit){
-      html += `<input type="number" class="marker-score-input" data-idx="${idx}" data-answer-id="${a.id}" value="${a.points}" min="0" max="${a.max_points}" step="0.5" style="width:70px;padding:6px;border:2px solid #e5e7eb;border-radius:6px;text-align:center;font-weight:700" onchange="window.opener.updateReviewScore(this)"><span style="font-size:11px;color:#666">/${a.max_points}</span>`;
+      html += `<input type="number" class="marker-score-input" data-idx="${idx}" data-answer-id="${a.id}" data-score-id="${score.id}" data-user-email="${email}" data-exam="${examId}" value="${a.points}" min="0" max="${a.max_points}" step="0.5" style="width:70px;padding:6px;border:2px solid #e5e7eb;border-radius:6px;text-align:center;font-weight:700" onchange="(window.opener || window).updateReviewScore(this)"><span style="font-size:11px;color:#666">/${a.max_points}</span>`;
     } else {
       html += `<strong>${a.points}/${a.max_points}</strong>`;
     }
@@ -1211,7 +1215,7 @@ async function viewCarnetFromAdmin(email, examId){
   });
   html += `</tbody></table>`;
   if(canEdit){
-    html += `<div style="margin-top:20px;text-align:center"><button onclick="window.opener.recalculateAndSaveScore('${email}','${examId}','${score.id}')" style="padding:14px 32px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">💾 Balları Yenilə və Yadda Saxla</button><p style="font-size:12px;color:#666;margin-top:8px">⚠️ Diqqət: Bu əməliyyat şagirdin ümumi balını və qiymətini yeniləyəcək.</p></div>`;
+    html += `<div style="margin-top:20px;text-align:center"><button onclick="(window.opener || window).recalculateAndSaveScore('${email}','${examId}','${score.id}')" style="padding:14px 32px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">💾 Balları Yenilə və Yadda Saxla</button><p style="font-size:12px;color:#666;margin-top:8px">⚠️ Diqqət: Bu əməliyyat şagirdin ümumi balını və qiymətini yeniləyəcək.</p></div>`;
   }
   html += `</div></div>`;
   const w = window.open('', '_blank', 'width=900,height=800');
@@ -1240,8 +1244,8 @@ async function recalculateAndSaveScore(email, examId, scoreId){
   const answers = await dbQuery('answers', { score_id: scoreId });
   let totalEarned = 0, totalMax = 0, correctCount = 0;
   answers.forEach(a => {
-    totalMax += parseFloat(a.max_points) || 1;
-    totalEarned += parseFloat(a.points) || 0;
+    totalMax += (parseFloat(a.max_points) || 1);
+    totalEarned += (parseFloat(a.points) || 0);
     if(a.is_correct) correctCount++;
   });
   const pct = totalMax > 0 ? Math.round((totalEarned / totalMax) * 100) : 0;
@@ -1258,7 +1262,7 @@ async function recalculateAndSaveScore(email, examId, scoreId){
     marker_edited_at: new Date().toISOString()
   });
   try {
-    const openerDoc = window.opener?.document;
+    const openerDoc = (window.opener || window)?.document;
     if(openerDoc){
       const totalDisplay = openerDoc.getElementById('carnetTotalDisplay');
       if(totalDisplay) totalDisplay.textContent = `${totalEarned}/${totalMax} (${pct}%)`;
@@ -1269,9 +1273,11 @@ async function recalculateAndSaveScore(email, examId, scoreId){
         gradeBadge.style.color = grade === 3 ? '#1a1a2e' : '#fff';
         gradeBadge.textContent = `${totalEarned}/${totalMax} (${pct}%)`;
       }
+      if(openerDoc.getElementById('adminResults')?.classList.contains('active')) openerDoc.renderStudentResultsList();
+      if(openerDoc.getElementById('markerStudentList')){ openerDoc.renderMarkerStudentList(); openerDoc.renderMarkerStats(); }
     }
   } catch(e){ console.error('UI yeniləmə xətası:', e); }
-  alert(`✅ Yadda saxlanıldı!\n\nYeni bal: ${totalEarned}/${totalMax} (${pct}%)\nQiymət: ${grade} (${gradeText})`);
+  alert(`✅ Yaddaşa verildi!\n\nYeni bal: ${totalEarned}/${totalMax} (${pct}%)\nQiymət: ${grade} (${gradeText})`);
 }
 
 function renderMarkerUserSelect(){
