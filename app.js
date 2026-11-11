@@ -238,6 +238,14 @@ const MODULE_ORDER = ['part1','part2','part3','part4','part5','part6','part7'];
 let currentUser = null;
 let currentExamId = null, currentModuleId = null, currentQ = 0, timerInterval, seconds = 0, autoAdvanceTimer = null, isTransitioning = false;
 
+// Canvas dəyişənləri
+let activeHwNum = null;
+let activeStrokes = [];
+let activePoints = [];
+let activeColor = '#1a1a2e';
+let activeWidth = 3.5;
+let isDrawing = false;
+
 function getSession(){ try { return JSON.parse(localStorage.getItem('fce_current')); } catch(e){ return null; } }
 function saveSession(user){ try { localStorage.setItem('fce_current', JSON.stringify(user)); } catch(e){ console.warn('LocalStorage full', e); } }
 function clearSession(){ localStorage.removeItem('fce_current'); }
@@ -460,10 +468,10 @@ async function showExamList(){
   const grid = document.getElementById('examGrid');
   grid.innerHTML = '';
   
-  // İstifadəçinin bütün nəticələrini alırıq (həm DB, həm lokal)
   const scores = await dbQuery('scores', { user_id: currentUser.id });
   const scoresMap = {};
   scores.forEach(s => { scoresMap[s.exam_id] = s; });
+  
   if(currentUser.scores){
     Object.keys(currentUser.scores).forEach(eid => {
       if(!scoresMap[eid]){
@@ -479,15 +487,14 @@ async function showExamList(){
       }
     });
   }
-
+  
   Object.values(EXAMS).forEach(exam => {
     const score = scoresMap[exam.id];
     const totalQ = exam.parts.reduce((s, pid) => s + (MODULES[pid].questions?.length || MODULES[pid].gaps?.length || 0), 0);
     const card = document.createElement('div');
     card.className = 'exam-card';
-
+    
     if(score){
-      // ✅ Şagird artıq bu imtahanda iştirak edib: 1 dəfəlik limit, nəticəyə baxış
       const pct = Math.round(score.percent || 0);
       const grade = score.grade || 1;
       const gradeText = score.grade_text || (grade >= 4 ? 'Uğurlu' : 'Tamamlandı');
@@ -520,7 +527,6 @@ async function showExamList(){
         </button>
       `;
     } else {
-      // ✅ Şagird hələ bu imtahanda iştirak etməyib: İmtahana başlamaq hüququ var
       card.onclick = () => startExam(exam.id);
       card.innerHTML = `
         <div class="exam-icon">${exam.icon}</div>
@@ -548,7 +554,6 @@ async function viewExamCarnet(examId){
 }
 
 async function startExam(examId){
-  // ✅ 1 DƏFƏLİK İŞTİRAK YOXLAMASI:
   const scores = await dbQuery('scores', { user_id: currentUser.id, exam_id: examId });
   const hasLocal = currentUser.scores && currentUser.scores[examId];
   if((scores && scores.length > 0) || hasLocal){
@@ -556,7 +561,6 @@ async function startExam(examId){
     viewExamCarnet(examId);
     return;
   }
-
   currentExamId = examId;
   currentModuleId = EXAMS[examId].parts[0];
   currentQ = 0; seconds = 0;
@@ -617,12 +621,13 @@ function renderQuestionNumbers(){
   container.innerHTML = html;
 }
 
-function goToQuestion(idx){ currentQ = idx; renderQuestion(); }
+function goToQuestion(idx){ currentQ = idx; renderQuestion(); renderText(); }
 
 function renderText(){
   const mod = getCurrentModule();
   const answers = getAnswers();
   const panel = document.getElementById('leftPanel');
+  if(!panel) return;
   let html = `<h2>${mod.title}</h2>`;
   if(mod.subtitle) html += `<div class="subtitle">${mod.subtitle}</div>`;
   html += `<div class="instructions">${mod.instructions}</div>`;
@@ -710,14 +715,7 @@ function renderText(){
   panel.innerHTML = html;
 }
 
-// ==================== ƏL YAZISI / CANVAS (SVG ENGINE) ====================
-let activeHwNum = null;
-let activeStrokes = [];
-let activePoints = [];
-let activeColor = '#1a1a2e';
-let activeWidth = 3.5;
-let isDrawing = false;
-
+// ==================== CANVAS / ƏL YAZISI FUNKSİYALARI ====================
 function getHandwriting(num, examId = currentExamId, userId = currentUser?.id){
   if(!num) return null;
   const eid = examId || currentExamId || 'fce_full';
@@ -772,7 +770,6 @@ function clearHandwriting(num, examId = currentExamId, userId = currentUser?.id)
   } catch(e){}
   if(currentUser?.handwriting?.[eid]) delete currentUser.handwriting[eid][num];
   if(currentUser?.handwritingStrokes?.[eid]) delete currentUser.handwritingStrokes[eid][num];
-  
   const answers = getAnswers();
   if(answers && answers[num] === '[Əl yazısı]'){
     delete answers[num];
@@ -802,9 +799,9 @@ function strokesToSvg(strokes, width = 540, height = 180){
       for(let i=1; i<pts.length; i++){
         const xc = ((pts[i-1].x + pts[i].x) / 2).toFixed(1);
         const yc = ((pts[i-1].y + pts[i].y) / 2).toFixed(1);
-        d += ` Q ${pts[i-1].x.toFixed(1)} ${pts[i-1].y.toFixed(1)}, ${xc} ${yc}`;
+        d += `Q ${pts[i-1].x.toFixed(1)} ${pts[i-1].y.toFixed(1)}, ${xc} ${yc}`;
       }
-      d += ` L ${pts[pts.length - 1].x.toFixed(1)} ${pts[pts.length - 1].y.toFixed(1)}`;
+      d += `L ${pts[pts.length - 1].x.toFixed(1)} ${pts[pts.length - 1].y.toFixed(1)}`;
       paths += `<path d="${d}" stroke="${col}" stroke-width="${sw}" fill="none" stroke-linecap="round" stroke-linejoin="round" />`;
     }
   });
@@ -812,25 +809,21 @@ function strokesToSvg(strokes, width = 540, height = 180){
 }
 
 function renderHandwritingButtonAndPreview(num, hwSvg){
-  let html = `
-    <div style="margin-top:10px;padding-top:10px;border-top:1px dashed #e5e7eb;">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
-        <button type="button" onclick="openHandwritingModal(${num})" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:#f8fafc;border:1.5px solid #cbd5e1;border-radius:8px;font-size:12.5px;font-weight:600;color:#1a1a2e;cursor:pointer;transition:all 0.15s;">
-          ✍️ Əl ilə yaz (Touch / Qələm)
-        </button>
-        ${hwSvg ? `<span style="font-size:12px;color:#16a34a;font-weight:700;">✓ Əl yazısı əlavə edildi</span>` : `<span style="font-size:11.5px;color:#9ca3af;">Telefon/planşetdə barmaqla və ya stylusla yazmaq mümkündür</span>`}
-      </div>
-  `;
+  let html = `<div style="margin-top:10px;padding-top:10px;border-top:1px dashed #e5e7eb;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+      <button type="button" onclick="openHandwritingModal(${num})" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:#f8fafc;border:1.5px solid #cbd5e1;border-radius:8px;font-size:12.5px;font-weight:600;color:#1a1a2e;cursor:pointer;transition:all 0.15s;">
+        ✍️ Əl ilə yaz (Touch / Qələm)
+      </button>
+      ${hwSvg ? `<span style="font-size:12px;color:#16a34a;font-weight:700;">✓ Əl yazısı əlavə edildi</span>` : `<span style="font-size:11.5px;color:#9ca3af;">Telefon/planşetdə barmaqla və ya stylusla yazmaq mümkündür</span>`}
+    </div>`;
   if(hwSvg){
-    html += `
-      <div style="margin-top:8px;background:#fff;border:1.5px solid #93c5fd;border-radius:8px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 1px 4px rgba(37,99,235,0.06);">
-        <div style="flex:1;max-height:55px;overflow:hidden;">${hwSvg}</div>
-        <div style="display:flex;gap:6px;">
-          <button type="button" onclick="openHandwritingModal(${num})" style="padding:5px 9px;font-size:11px;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:6px;cursor:pointer;font-weight:600;">Dəyiş</button>
-          <button type="button" onclick="clearHandwriting(${num})" style="padding:5px 9px;font-size:11px;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:6px;cursor:pointer;font-weight:600;">Sil</button>
-        </div>
+    html += `<div style="margin-top:8px;background:#fff;border:1.5px solid #93c5fd;border-radius:8px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 1px 4px rgba(37,99,235,0.06);">
+      <div style="flex:1;max-height:55px;overflow:hidden;">${hwSvg}</div>
+      <div style="display:flex;gap:6px;">
+        <button type="button" onclick="openHandwritingModal(${num})" style="padding:5px 9px;font-size:11px;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:6px;cursor:pointer;font-weight:600;">Dəyiş</button>
+        <button type="button" onclick="clearHandwriting(${num})" style="padding:5px 9px;font-size:11px;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:6px;cursor:pointer;font-weight:600;">Sil</button>
       </div>
-    `;
+    </div>`;
   }
   html += `</div>`;
   return html;
@@ -840,28 +833,22 @@ function openHandwritingModal(num){
   activeHwNum = num;
   const existingStrokes = getHandwritingStrokes(num);
   activeStrokes = existingStrokes ? JSON.parse(JSON.stringify(existingStrokes)) : [];
-  
   const existingModal = document.getElementById('hwModal');
   if(existingModal) existingModal.remove();
-
+  
   const modal = document.createElement('div');
   modal.id = 'hwModal';
   modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.75);backdrop-filter:blur(3px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;animation:fadeIn 0.2s;';
-  
   modal.innerHTML = `
     <div style="background:#fff;border-radius:16px;max-width:600px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,0.3);display:flex;flex-direction:column;overflow:hidden;">
-      <!-- Header -->
       <div style="background:#1a1a2e;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;">
         <div style="font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;">
           <span>✍️ Sual ${num} — Əl ilə cavab yazın</span>
         </div>
-        <button onclick="closeHandwritingModal()" style="background:transparent;border:none;color:#94a3b8;font-size:20px;cursor:pointer;line-height:1;">&times;</button>
+        <button onclick="closeHandwritingModal()" style="background:transparent;border:none;color:#94a3b8;font-size:20px;cursor:pointer;line-height:1;">×</button>
       </div>
-
-      <!-- Canvas Area -->
       <div style="padding:16px;background:#f8fafc;">
         <div style="position:relative;background:#fff;border:2px solid #cbd5e1;border-radius:12px;overflow:hidden;box-shadow:inset 0 2px 6px rgba(0,0,0,0.04);">
-          <!-- Xəttli köməkçi dəftər toru -->
           <div style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;background-image:linear-gradient(#f1f5f9 1px, transparent 1px);background-size:100% 30px;opacity:0.7;"></div>
           <canvas id="hwCanvas" width="540" height="180" style="width:100%;height:180px;display:block;touch-action:none;cursor:crosshair;position:relative;z-index:1;"></canvas>
         </div>
@@ -869,40 +856,30 @@ function openHandwritingModal(num){
           💡 Barmaqla və ya stylus qələmlə sərbəst yazın. Cavab avtomatik vektor SVG kimi qeyd olunacaq.
         </div>
       </div>
-
-      <!-- Toolbar -->
       <div style="padding:12px 16px;background:#f1f5f9;border-top:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-        <!-- Rənglər -->
         <div style="display:flex;align-items:center;gap:6px;">
           <span style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;">Rəng:</span>
           <button type="button" onclick="setHwColor('#1a1a2e', this)" class="hw-color-btn active" style="width:24px;height:24px;border-radius:50%;background:#1a1a2e;border:2px solid #fff;box-shadow:0 0 0 2px #2563eb;cursor:pointer;"></button>
           <button type="button" onclick="setHwColor('#2563eb', this)" class="hw-color-btn" style="width:24px;height:24px;border-radius:50%;background:#2563eb;border:2px solid #fff;box-shadow:none;cursor:pointer;"></button>
           <button type="button" onclick="setHwColor('#dc2626', this)" class="hw-color-btn" style="width:24px;height:24px;border-radius:50%;background:#dc2626;border:2px solid #fff;box-shadow:none;cursor:pointer;"></button>
         </div>
-
-        <!-- Qalınlıq -->
         <div style="display:flex;align-items:center;gap:6px;">
           <span style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;">Qələm:</span>
           <button type="button" onclick="setHwWidth(2, this)" class="hw-width-btn" style="padding:4px 8px;font-size:11px;background:#fff;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;">İncə</button>
           <button type="button" onclick="setHwWidth(3.5, this)" class="hw-width-btn active" style="padding:4px 8px;font-size:11px;background:#1a1a2e;color:#fff;border:1px solid #1a1a2e;border-radius:6px;cursor:pointer;font-weight:700;">Orta</button>
           <button type="button" onclick="setHwWidth(5.5, this)" class="hw-width-btn" style="padding:4px 8px;font-size:11px;background:#fff;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;">Qalın</button>
         </div>
-
-        <!-- Əməliyyatlar -->
         <div style="display:flex;gap:6px;">
           <button type="button" onclick="undoHwStroke()" style="padding:6px 12px;background:#fff;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;color:#334155;">↩️ Geri al</button>
           <button type="button" onclick="clearHwCanvas()" style="padding:6px 12px;background:#fff;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;color:#dc2626;">🗑️ Təmizlə</button>
         </div>
       </div>
-
-      <!-- Footer Buttons -->
       <div style="padding:14px 20px;background:#fff;border-top:1px solid #e2e8f0;display:flex;justify-content:flex-end;gap:10px;">
         <button type="button" onclick="closeHandwritingModal()" style="padding:10px 18px;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;">İmtina</button>
         <button type="button" onclick="saveHandwritingModal()" style="padding:10px 22px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 2px 8px rgba(22,163,74,0.3);">💾 Yadda Saxla (SVG)</button>
       </div>
     </div>
   `;
-
   document.body.appendChild(modal);
   initHwCanvas();
 }
@@ -938,9 +915,8 @@ function initHwCanvas(){
   const canvas = document.getElementById('hwCanvas');
   if(!canvas) return;
   const ctx = canvas.getContext('2d');
-  
   redrawHwCanvas();
-
+  
   function getCanvasPos(e){
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
@@ -955,7 +931,7 @@ function initHwCanvas(){
       y: (clientY - rect.top) * scaleY
     };
   }
-
+  
   function startDraw(e){
     e.preventDefault();
     isDrawing = true;
@@ -973,27 +949,25 @@ function initHwCanvas(){
     ctx.lineJoin = 'round';
     ctx.moveTo(pos.x, pos.y);
   }
-
+  
   function moveDraw(e){
     if(!isDrawing) return;
     e.preventDefault();
     const pos = getCanvasPos(e);
     activePoints.push(pos);
-    
     ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
   }
-
+  
   function stopDraw(e){
     if(!isDrawing) return;
     isDrawing = false;
   }
-
+  
   canvas.addEventListener('mousedown', startDraw);
   canvas.addEventListener('mousemove', moveDraw);
   canvas.addEventListener('mouseup', stopDraw);
   canvas.addEventListener('mouseleave', stopDraw);
-
   canvas.addEventListener('touchstart', startDraw, { passive: false });
   canvas.addEventListener('touchmove', moveDraw, { passive: false });
   canvas.addEventListener('touchend', stopDraw, { passive: false });
@@ -1004,7 +978,6 @@ function redrawHwCanvas(){
   if(!canvas) return;
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
   activeStrokes.forEach(stroke => {
     const pts = stroke.points;
     if(!pts || pts.length === 0) return;
@@ -1042,8 +1015,6 @@ function saveHandwritingModal(){
   }
   const svg = strokesToSvg(activeStrokes, 540, 180);
   setHandwriting(activeHwNum, svg, activeStrokes);
-  
-  // Əgər yazılı cavab boşdursa, sualı avtomatik cavablanmış kimi qeyd edirik
   const answers = getAnswers();
   if(!answers[activeHwNum] || !answers[activeHwNum].trim()){
     answers[activeHwNum] = '[Əl yazısı]';
@@ -1053,7 +1024,6 @@ function saveHandwritingModal(){
     }
   }
   saveSession(currentUser);
-
   closeHandwritingModal();
   renderText();
   renderQuestion();
@@ -1064,6 +1034,8 @@ function renderQuestion(){
   const mod = getCurrentModule();
   const answers = getAnswers();
   const container = document.getElementById('qContent');
+  if(!container) return;
+  
   if(currentModuleId==='part1' || currentModuleId==='part5'){
     const q = mod.questions[currentQ];
     const val = answers[q.num] || '';
@@ -1094,13 +1066,15 @@ function renderQuestion(){
     if(currentModuleId==='part3' && g.given) html += `<div class="q-word-given"><span class="kw-label">Verilən söz:</span>${g.given}</div>`;
     const hwSvg = getHandwriting(g.num);
     const hwHtml = renderHandwritingButtonAndPreview(g.num, hwSvg);
-    html += `<div class="q-input-area"><label>Cavabınız</label><input type="text" class="q-main-input" id="mainInput" value="${val}" placeholder="cavabı yazın..." autocomplete="off" spellcheck="false" oninput="onInput(this.value)" onkeydown="onKeydown(event)"><div class="q-hint-text">${currentModuleId==='part2' ? '💡 Yalnız 1 söz yazın' : '💡 Verilən sözdən kök dəyişərək yeni söz düzəldin'}</div>${hwHtml}</div></div>`;
+    html += `<div class="q-input-area"><label>Cavabınız</label><input type="text" class="q-main-input" id="mainInput" value="${typeof val === 'object' ? (val.text || '') : (val || '')}" placeholder="cavabı yazın..." autocomplete="off" spellcheck="false" oninput="onInput(this.value)" onkeydown="onKeydown(event)"><div class="q-hint-text">${currentModuleId==='part2' ? '💡 Yalnız 1 söz yazın' : '💡 Verilən sözdən kök dəyişərək yeni söz düzəldin'}</div>${hwHtml}</div></div>`;
     container.innerHTML = html;
     setTimeout(() => { const inp = document.getElementById('mainInput'); if(inp){ inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); } }, 50);
   } else if(currentModuleId==='part4'){
     const q = mod.questions[currentQ];
     const val = answers[q.num] || '';
-    let html = `<div class="q-card"><div class="q-card-header"><div class="q-number">${q.num}</div><div class="q-title">İkinci cümləni tamamlayın</div></div><div class="q-context" style="font-style:italic;">"${q.original}"</div><div style="text-align:center;margin-bottom:16px;"><span style="display:inline-block;background:#1a1a2e;color:#fbbf24;padding:4px 14px;border-radius:6px;font-weight:700;font-size:15px;letter-spacing:1px;">${q.keyword}</span></div><div class="q-input-area"><label>Cavabınız (2-5 söz, böyük hərflərlə)</label><input type="text" class="q-main-input" id="mainInput" value="${val}" placeholder="cavabı yazın..." autocomplete="off" spellcheck="false" oninput="onInput(this.value)" onkeydown="onKeydown(event)"><div class="q-hint-text">💡 2-5 söz, böyük hərflərlə</div></div><div style="background:#f9fafb;padding:12px;border-radius:8px;font-size:13px;color:#555;line-height:1.6;margin-bottom:12px;">${q.sentenceStart} <strong style="color:#1a1a2e;">[___]</strong> ${q.sentenceEnd}</div></div>`;
+    const hwSvg = getHandwriting(q.num);
+    const hwHtml = renderHandwritingButtonAndPreview(q.num, hwSvg);
+    let html = `<div class="q-card"><div class="q-card-header"><div class="q-number">${q.num}</div><div class="q-title">İkinci cümləni tamamlayın</div></div><div class="q-context" style="font-style:italic;">"${q.original}"</div><div style="text-align:center;margin-bottom:16px;"><span style="display:inline-block;background:#1a1a2e;color:#fbbf24;padding:4px 14px;border-radius:6px;font-weight:700;font-size:15px;letter-spacing:1px;">${q.keyword}</span></div><div class="q-input-area"><label>Cavabınız (2-5 söz, böyük hərflərlə)</label><input type="text" class="q-main-input" id="mainInput" value="${typeof val === 'object' ? (val.text || '') : (val || '')}" placeholder="cavabı yazın..." autocomplete="off" spellcheck="false" oninput="onInput(this.value)" onkeydown="onKeydown(event)"><div class="q-hint-text">💡 2-5 söz, böyük hərflərlə</div>${hwHtml}</div><div style="background:#f9fafb;padding:12px;border-radius:8px;font-size:13px;color:#555;line-height:1.6;margin-bottom:12px;">${q.sentenceStart} <strong style="color:#1a1a2e;">[___]</strong> ${q.sentenceEnd}</div></div>`;
     container.innerHTML = html;
     setTimeout(() => { const inp = document.getElementById('mainInput'); if(inp){ inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); } }, 50);
   } else if(currentModuleId==='part6'){
@@ -1125,6 +1099,7 @@ function renderQuestion(){
     });
     rp.innerHTML = rhtml;
   }
+  
   const btnPrev = document.getElementById('btnPrev');
   const btnNext = document.getElementById('btnNext');
   if(btnPrev) btnPrev.disabled = currentQ === 0;
@@ -1198,7 +1173,9 @@ function onInput(val){
   const mod = getCurrentModule();
   const num = (mod.questions || mod.gaps)[currentQ].num;
   const answers = getAnswers();
-  answers[num] = val;
+  const existingVal = answers[num] || '';
+  const svgVal = typeof existingVal === 'object' ? existingVal.svg : null;
+  answers[num] = { text: val, svg: svgVal };
   saveSession(currentUser);
   renderText();
   renderQuestionNumbers();
@@ -1382,21 +1359,17 @@ async function showCarnet(){
     const m = MODULES[a.part_id];
     const rowClass = a.is_correct ? 'correct-row' : 'incorrect-row';
     const qNum = parseInt(a.question_num);
-    const hwSvg = a.handwriting_svg 
-      || getHandwriting(qNum, examId) 
-      || currentUser?.scores?.[examId]?.review?.find(r => r.num === qNum)?.handwriting_svg;
-      
+    const hwSvg = a.handwriting_svg || getHandwriting(qNum, examId) || currentUser?.scores?.[examId]?.review?.find(r => r.num === qNum)?.handwriting_svg;
     let ansCell = `<div style="font-weight:600;font-size:14px;color:#1a1a2e;">${a.user_answer || (hwSvg ? '[Əl yazısı]' : '—')}</div>`;
     if(hwSvg){
-      ansCell += `
-        <div class="handwriting-carnet-box" style="margin-top:6px;background:#f8fafc;border:1.5px solid #93c5fd;border-radius:8px;padding:6px 10px;max-width:280px;box-shadow:0 1px 4px rgba(37,99,235,0.08);">
-          <div style="font-size:10.5px;color:#2563eb;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:4px;">
-            <span>✍️ Şagirdin Əl Yazısı (SVG):</span>
-          </div>
-          <div style="background:#fff;border-radius:4px;padding:4px;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;">
-            ${hwSvg}
-          </div>
-        </div>`;
+      ansCell += `<div class="handwriting-carnet-box" style="margin-top:6px;background:#f8fafc;border:1.5px solid #93c5fd;border-radius:8px;padding:6px 10px;max-width:280px;box-shadow:0 1px 4px rgba(37,99,235,0.08);">
+        <div style="font-size:10.5px;color:#2563eb;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:4px;">
+          <span>✍️ Şagirdin Əl Yazısı (SVG):</span>
+        </div>
+        <div style="background:#fff;border-radius:4px;padding:4px;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;">
+          ${hwSvg}
+        </div>
+      </div>`;
     }
     html += `<tr class="${rowClass}"><td>Part ${m ? m.moduleNum : a.part_id}</td><td>${a.question_num}</td><td>${ansCell}</td><td>${a.correct_answer}</td><td><strong>${a.points}/${a.max_points}</strong></td></tr>`;
   });
@@ -1405,10 +1378,10 @@ async function showCarnet(){
 }
 
 function backToExams(){
-  document.getElementById('examPage').classList.add('hidden');
-  document.getElementById('carnetPage').classList.add('hidden');
-  document.getElementById('adminPage').classList.add('hidden');
-  document.getElementById('markerDashboard').classList.add('hidden');
+  document.getElementById('examPage')?.classList.add('hidden');
+  document.getElementById('carnetPage')?.classList.add('hidden');
+  document.getElementById('adminPage')?.classList.add('hidden');
+  document.getElementById('markerDashboard')?.classList.add('hidden');
   document.getElementById('resultsScreen')?.classList.remove('show');
   hideExamNavButtons();
   showExamList();
@@ -1485,19 +1458,11 @@ async function handlePDFUpload(event){
 }
 
 function parsePDFAndCreateExam(text) {
-  console.log('PDF mətni:', text);
   if (!text || text.trim().length === 0) {
-    alert('❌ PDF-dən mətn çıxarıla bilmədi. Fayl düzgün formatda deyil.');
+    alert('❌ PDF-dən mətn çıxarıla bilmədi.');
     return;
   }
-  const preview = text.substring(0, 1000);
-  console.log('İlk 1000 simvol:', preview);
-  const message = `✅ PDF uğurla oxundu!\n\n` +
-    `📝 Mətn uzunluğu: ${text.length} simvol\n\n` +
-    `📋 İlk 500 simvol:\n${preview.substring(0, 500)}...\n\n` +
-    `⚠️ Qeyd: Tam avtomatik PDF parsing hələ hazırlanmayıb.\n` +
-    `İmtahanı manual olaraq əlavə etmək üçün "İmtahanlar" bölməsindən istifadə edin.`;
-  alert(message);
+  alert(`✅ PDF oxundu! ${text.length} simvol.`);
 }
 
 async function renderAdminUsers(){
@@ -1538,7 +1503,9 @@ async function viewUserAnswers(email){
     if(answers.length > 0){
       html += `<div style="margin-top:10px;max-height:300px;overflow-y:auto">`;
       answers.forEach(a => {
-        html += `<div style="display:flex;justify-content:space-between;padding:6px;border-bottom:1px solid #e5e7eb;font-size:13px"><span style="font-weight:700;min-width:60px">${a.part_id}#${a.question_num}</span><span style="flex:1;color:${a.is_correct ? '#16a34a' : '#dc2626'};${a.is_correct ? '' : 'text-decoration:line-through'}">${a.user_answer || '—'}</span><span style="color:#16a34a;font-weight:700">${a.correct_answer} (${a.points}/${a.max_points})</span></div>`;
+        let answerDisplay = a.user_answer || '—';
+        if(a.handwriting_svg) answerDisplay = `<img src="${a.handwriting_svg}" class="handwriting-svg" style="max-height:40px" />`;
+        html += `<div style="display:flex;justify-content:space-between;padding:6px;border-bottom:1px solid #e5e7eb;font-size:13px"><span style="font-weight:700;min-width:60px">${a.part_id}#${a.question_num}</span><span style="flex:1">${answerDisplay}</span><span style="color:#16a34a;font-weight:700">${a.correct_answer} (${a.points}/${a.max_points})</span></div>`;
       });
       html += `</div>`;
     }
@@ -1574,7 +1541,7 @@ async function renderPointsEditor(){
   const pointsMap = {};
   pointsData.forEach(p => {
     if(!pointsMap[p.part_id]) pointsMap[p.part_id] = {};
-    pointsMap[p.part_id][p.question_num] = p.points;
+    pointsMap[p.part_id][p.question_num] = parseFloat(p.points) || 1;
   });
   const container = document.getElementById('pointsEditor');
   let html = '';
@@ -1647,17 +1614,14 @@ async function viewCarnetFromAdmin(email, examId){
   answers.forEach((a, idx) => {
     const m = MODULES[a.part_id];
     const qNum = parseInt(a.question_num);
-    const hwSvg = a.handwriting_svg 
-      || getHandwriting(qNum, examId, user.id) 
-      || user.scores?.[examId]?.review?.find(r => r.num === qNum)?.handwriting_svg;
-      
+    const hwSvg = a.handwriting_svg || getHandwriting(qNum, examId, user.id) || user.scores?.[examId]?.review?.find(r => r.num === qNum)?.handwriting_svg;
     let adminAnsCell = `<div style="font-weight:600;">${a.user_answer || (hwSvg ? '[Əl yazısı]' : '—')}</div>`;
     if(hwSvg){
       adminAnsCell += `<div style="margin-top:6px;background:#f8fafc;border:1.5px solid #93c5fd;border-radius:8px;padding:6px 10px;max-width:280px;"><div style="font-size:10px;color:#2563eb;font-weight:700;margin-bottom:2px;">✍️ Şagirdin əl yazısı (SVG):</div><div style="background:#fff;border-radius:4px;padding:4px;border:1px solid #e2e8f0;">${hwSvg}</div></div>`;
     }
     html += `<tr style="background:${a.is_correct ? '#dcfce7' : '#fee2e2'}" id="reviewRow_${idx}"><td style="padding:12px;border-bottom:1px solid #e5e7eb">Part ${m.moduleNum}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.question_num}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${adminAnsCell}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.correct_answer}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.is_correct ? '✅ Düzgün' : '❌ Səhv'}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">`;
     if(canEdit){
-      html += `<input type="number" class="marker-score-input" data-idx="${idx}" data-answer-id="${a.id}" data-score-id="${score.id}" data-user-email="${email}" data-exam="${examId}" value="${a.points}" min="0" max="${a.max_points}" step="0.5" style="width:70px;padding:6px;border:2px solid #e5e7eb;border-radius:6px;text-align:center;font-weight:700" onchange="window.opener.updateReviewScore(this)"><span style="font-size:11px;color:#666">/${a.max_points}</span>`;
+      html += `<input type="number" class="marker-score-input" data-idx="${idx}" data-answer-id="${a.id}" data-score-id="${score.id}" data-user-email="${email}" data-exam="${examId}" value="${a.points}" min="0" max="${a.max_points}" step="0.5" style="width:70px;padding:6px;border:2px solid #e5e7eb;border-radius:6px;text-align:center;font-weight:700" onchange="(window.opener || window).updateReviewScore(this)"><span style="font-size:11px;color:#666">/${a.max_points}</span>`;
     } else {
       html += `<strong>${a.points}/${a.max_points}</strong>`;
     }
@@ -1665,7 +1629,7 @@ async function viewCarnetFromAdmin(email, examId){
   });
   html += `</tbody></table>`;
   if(canEdit){
-    html += `<div style="margin-top:20px;text-align:center"><button onclick="window.opener.recalculateAndSaveScore('${email}','${examId}','${score.id}')" style="padding:14px 32px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">💾 Balları Yenilə və Yadda Saxla</button><p style="font-size:12px;color:#666;margin-top:8px">⚠️ Diqqət: Bu əməliyyat şagirdin ümumi balını və qiymətini yeniləyəcək.</p></div>`;
+    html += `<div style="margin-top:20px;text-align:center"><button onclick="(window.opener || window).recalculateAndSaveScore('${email}','${examId}','${score.id}')" style="padding:14px 32px;background:#16a34a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">💾 Balları Yenilə və Yadda Saxla</button><p style="font-size:12px;color:#666;margin-top:8px">⚠️ Diqqət: Bu əməliyyat şagirdin ümumi balını və qiymətini yeniləyəcək.</p></div>`;
   }
   html += `</div></div>`;
   const w = window.open('', '_blank', 'width=900,height=800');
@@ -1712,7 +1676,7 @@ async function recalculateAndSaveScore(email, examId, scoreId){
     marker_edited_at: new Date().toISOString()
   });
   try {
-    const openerDoc = window.opener?.document;
+    const openerDoc = (window.opener || window)?.document;
     if(openerDoc){
       const totalDisplay = openerDoc.getElementById('carnetTotalDisplay');
       if(totalDisplay) totalDisplay.textContent = `${totalEarned}/${totalMax} (${pct}%)`;
@@ -1727,7 +1691,7 @@ async function recalculateAndSaveScore(email, examId, scoreId){
       if(openerDoc.getElementById('markerStudentList')){ openerDoc.renderMarkerStudentList(); openerDoc.renderMarkerStats(); }
     }
   } catch(e){ console.error('UI yeniləmə xətası:', e); }
-  alert(`✅ Yaddaşa verildi!\n\nYeni bal: ${totalEarned}/${totalMax} (${pct}%)\nQiymət: ${grade} (${gradeText})`);
+  alert(`✅ Yadda saxlanıldı!\n\nYeni bal: ${totalEarned}/${totalMax} (${pct}%)\nQiymət: ${grade} (${gradeText})`);
 }
 
 function renderMarkerUserSelect(){
