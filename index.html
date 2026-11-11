@@ -1,20 +1,14 @@
 <!DOCTYPE html>
 <html lang="az">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cambridge FCE — Platform</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script>
-    if (typeof pdfjsLib !== 'undefined') {
-      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    }
-  </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cambridge FCE — Platform</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
 
-<!-- GİRİŞ / QEYDİYYAT SƏHİFƏSİ -->
 <div id="authPage" class="auth-page">
   <div class="auth-card">
     <h1>Cambridge <span style="color:#fbbf24">FCE</span></h1>
@@ -26,38 +20,19 @@
     <div id="authError" class="auth-error"></div>
     <div id="authSuccess" class="auth-success"></div>
     <div id="loginForm">
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="loginEmail" placeholder="email@example.com" onkeypress="if(event.key==='Enter')doLogin()">
-      </div>
-      <div class="form-group">
-        <label>Parol</label>
-        <input type="password" id="loginPassword" placeholder="••••••••" onkeypress="if(event.key==='Enter')doLogin()">
-      </div>
+      <div class="form-group"><label>Email</label><input type="email" id="loginEmail" placeholder="email@example.com" onkeypress="if(event.key==='Enter')doLogin()"></div>
+      <div class="form-group"><label>Parol</label><input type="password" id="loginPassword" placeholder="••••••••" onkeypress="if(event.key==='Enter')doLogin()"></div>
       <button class="auth-btn" onclick="doLogin()">Giriş et</button>
-      <div style="margin-top:14px;font-size:12px;color:#6b7280;text-align:center;">
-        Admin: <strong>admin@fce.com</strong> / <strong>admin123</strong>
-      </div>
     </div>
     <div id="registerForm" class="hidden">
-      <div class="form-group">
-        <label>Ad Soyad</label>
-        <input type="text" id="regName" placeholder="Ad Soyad">
-      </div>
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="regEmail" placeholder="email@example.com">
-      </div>
-      <div class="form-group">
-        <label>Parol</label>
-        <input type="password" id="regPassword" placeholder="Minimum 6 simvol" onkeypress="if(event.key==='Enter')doRegister()">
-      </div>
+      <div class="form-group"><label>Ad Soyad</label><input type="text" id="regName" placeholder="Ad Soyad"></div>
+      <div class="form-group"><label>Email</label><input type="email" id="regEmail" placeholder="email@example.com"></div>
+      <div class="form-group"><label>Parol</label><input type="password" id="regPassword" placeholder="Minimum 6 simvol" onkeypress="if(event.key==='Enter')doRegister()"></div>
       <button class="auth-btn" onclick="doRegister()">Qeydiyyatdan keç</button>
     </div>
   </div>
 </div>
 
-<!-- ƏSAS TƏTBİQ -->
 <div id="mainApp" class="hidden">
   <div class="top-nav">
     <div class="logo">Cambridge <span>FCE</span> — Platform</div>
@@ -68,14 +43,12 @@
     </div>
   </div>
 
-  <!-- İmtahan Siyahısı Səhifəsi -->
   <div id="examListPage" class="exam-list-page hidden">
     <h2>İmtahanlar</h2>
     <div class="sub">Mövcud imtahanlardan birini seçin</div>
     <div class="exam-grid" id="examGrid"></div>
   </div>
 
-  <!-- İmtahan İcrası Səhifəsi -->
   <div id="examPage" class="hidden">
     <div class="module-bar">
       <div class="module-badge">
@@ -86,21 +59,16 @@
         </div>
       </div>
       <div class="module-progress">
-        <!-- Sayğac Göstəricisi -->
-        <span id="timerDisplay" class="timer-badge">00:00</span>
-        <div class="module-progress-bar">
-          <div class="module-progress-fill" id="progressFill" style="width:0%"></div>
-        </div>
+        <div class="module-progress-bar"><div class="module-progress-fill" id="progressFill" style="width:0%"></div></div>
         <div class="module-progress-text" id="progressText">0/8</div>
+        <span style="font-weight:700;color:#1a1a2e;font-size:14px;margin-left:10px" id="timerDisplay">00:00</span>
       </div>
     </div>
     <div class="main-layout" id="mainLayout"></div>
   </div>
 
-  <!-- Nəticə Vərəqi (Karnet) -->
   <div id="carnetPage" class="carnet-page hidden"></div>
 
-  <!-- Marker Kabineti -->
   <div id="markerDashboard" class="marker-dashboard hidden">
     <div class="marker-header">
       <h2>👋 Marker Kabineti</h2>
@@ -113,7 +81,6 @@
     </div>
   </div>
 
-  <!-- Admin Panel -->
   <div id="adminPage" class="admin-page hidden">
     <h2>🛠️ Admin Panel</h2>
     <div class="admin-tabs">
@@ -125,33 +92,26 @@
       <button class="admin-tab" onclick="switchAdminTab('markers', event)">✍️ Markerlər</button>
     </div>
 
-    <!-- İstifadəçilər Bölməsi -->
     <div id="adminUsers" class="admin-section active">
       <div class="admin-card">
         <h3>Qeydiyyatdan keçmiş istifadəçilər</h3>
         <table class="users-table">
-          <thead>
-            <tr><th>Ad</th><th>Email</th><th>Rol</th><th>Tamamlanan</th><th>Bal</th><th>Əməliyyat</th></tr>
-          </thead>
+          <thead><tr><th>Ad</th><th>Email</th><th>Rol</th><th>Tamamlanan</th><th>Bal</th><th>Əməliyyat</th></tr></thead>
           <tbody id="usersTableBody"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- İmtahanlar Bölməsi -->
     <div id="adminExams" class="admin-section">
       <div class="admin-card">
         <h3>İmtahan siyahısı</h3>
         <table class="exams-table">
-          <thead>
-            <tr><th>ID</th><th>Ad</th><th>Partlar</th><th>Ümumi sual</th></tr>
-          </thead>
+          <thead><tr><th>ID</th><th>Ad</th><th>Partlar</th><th>Ümumi sual</th></tr></thead>
           <tbody id="examsTableBody"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- İmtahan Yükləmə Bölməsi -->
     <div id="adminUpload" class="admin-section">
       <div class="admin-card">
         <h3>📝 İmtahan Yüklə (PDF)</h3>
@@ -160,7 +120,6 @@
       </div>
     </div>
 
-    <!-- Balların Tənzimlənməsi -->
     <div id="adminPoints" class="admin-section">
       <div class="admin-card">
         <h3>Hər sual üçün bal təyini</h3>
@@ -172,7 +131,6 @@
       </div>
     </div>
 
-    <!-- Şagird Nəticələri -->
     <div id="adminResults" class="admin-section">
       <div class="admin-card">
         <h3>Şagird nəticələri</h3>
@@ -180,7 +138,6 @@
       </div>
     </div>
 
-    <!-- Marker İdarəetməsi -->
     <div id="adminMarkers" class="admin-section">
       <div class="admin-card">
         <h3>Marker İdarəetməsi</h3>
