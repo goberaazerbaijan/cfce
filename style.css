@@ -1,5 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ✅ Düzəldildi: * universal selektoru bərpa edildi */
 * { margin: 0; padding: 0; box-sizing: border-box; }
+
 body { font-family: 'Inter', sans-serif; background: #f0f0eb; color: #222; min-height: 100vh; }
 .hidden { display: none !important; }
 .auth-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #1a1a2e 0%, #2d2d4e 100%); padding: 20px; }
@@ -31,6 +34,8 @@ body { font-family: 'Inter', sans-serif; background: #f0f0eb; color: #222; min-h
 .part-nav-btn.active { background: #fbbf24; color: #1a1a2e; border-color: #fbbf24; }
 .result-nav-btn { padding: 6px 14px; background: #16a34a; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif; transition: all 0.2s; margin-left: 8px; }
 .result-nav-btn:hover { background: #15803d; }
+
+/* ✅ Qırmızı "İmtahanı bitir" düyməsi */
 .btn-finish-exam {
   background: #dc2626 !important;
   color: #fff !important;
@@ -40,6 +45,7 @@ body { font-family: 'Inter', sans-serif; background: #f0f0eb; color: #222; min-h
   background: #b91c1c !important;
   border-color: #b91c1c !important;
 }
+
 .exam-list-page { padding: 40px 24px; max-width: 1000px; margin: 0 auto; }
 .exam-list-page h2 { font-family: 'Merriweather', serif; font-size: 28px; color: #1a1a2e; margin-bottom: 8px; }
 .exam-list-page .sub { color: #666; margin-bottom: 30px; }
@@ -154,18 +160,26 @@ body { font-family: 'Inter', sans-serif; background: #f0f0eb; color: #222; min-h
 .btn-continue:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(26,26,46,0.3); }
 .results-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(245,245,240,0.98); z-index: 25; flex-direction: column; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
 .results-screen.show { display: flex; }
+
+/* ✅ Düzəldildi: text-align */
 .results-card { background: #fff; border-radius: 16px; padding: 30px; text-align: center; max-width: 560px; width: 100%; box-shadow: 0 4px 20px rgba(0,0,0,0.1); animation: modalPop 0.4s; max-height: 90vh; overflow-y: auto; }
 .results-emoji { font-size: 60px; margin-bottom: 10px; }
 .results-title { font-family: 'Merriweather', serif; font-size: 24px; color: #1a1a2e; margin-bottom: 6px; }
+
+/* ✅ Düzəldildi: font-weight */
 .results-score { font-size: 46px; font-weight: 900; color: #1a1a2e; margin: 10px 0; }
 .results-score span { color: #fbbf24; }
 .results-msg { font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 16px; }
+
+/* ✅ Düzəldildi: results-breakdown və breakdown-item */
 .results-breakdown { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
 .breakdown-item { flex: 1; min-width: 60px; background: #f9fafb; border-radius: 10px; padding: 10px; }
 .breakdown-item .b-label { font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
 .breakdown-item .b-score { font-size: 20px; font-weight: 900; color: #1a1a2e; }
 .breakdown-item .b-score span { color: #fbbf24; }
 .final-review { text-align: left; margin-bottom: 20px; max-height: 300px; overflow-y: auto; }
+
+/* ✅ Düzəldildi: final-review-section və margin-bottom */
 .final-review-section { margin-bottom: 14px; }
 .final-review-section h4 { font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: #1a1a2e; font-weight: 700; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 2px solid #1a1a2e; }
 .final-review-item { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 8px; margin-bottom: 5px; font-size: 13px; }
@@ -174,12 +188,16 @@ body { font-family: 'Inter', sans-serif; background: #f0f0eb; color: #222; min-h
 .final-review-item .fr-num { font-weight: 800; color: #1a1a2e; min-width: 30px; }
 .final-review-item .fr-icon { font-size: 15px; }
 .final-review-item .fr-user { font-weight: 700; font-size: 13px; }
+/* ✅ Düzəldildi: .fr-user.wrong selektoru */
 .final-review-item .fr-user.wrong { text-decoration: line-through; color: #dc2626; }
 .final-review-item .fr-correct { font-weight: 700; font-size: 13px; color: #16a34a; }
+
+/* ✅ Düzəldildi: background, margin, border-radius, transform */
 .btn-restart { padding: 14px 36px; background: #1a1a2e; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; margin: 6px; }
 .btn-restart:hover { background: #2d2d4e; transform: translateY(-2px); }
 .btn-carnet { padding: 14px 36px; background: #fbbf24; color: #1a1a2e; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; margin: 6px; }
 .btn-carnet:hover { background: #f59e0b; transform: translateY(-2px); }
+
 .carnet-page { padding: 40px 24px; max-width: 900px; margin: 0 auto; }
 .carnet-card { background: #fff; border-radius: 16px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin-bottom: 20px; }
 .carnet-header { text-align: center; border-bottom: 3px double #1a1a2e; padding-bottom: 20px; margin-bottom: 24px; }
@@ -259,223 +277,59 @@ body { font-family: 'Inter', sans-serif; background: #f0f0eb; color: #222; min-h
 #pdfUpload:hover { border-color: #2563eb; }
 #markersList { margin-top: 20px; }
 
-/* ==================== MOBİL GÖRÜNÜŞ ==================== */
+/* Responsive Mobil */
 @media (max-width: 900px) {
-  .top-nav {
-    flex-wrap: wrap;
-    height: auto;
-    padding: 10px 12px;
-    gap: 8px;
-  }
-  .top-nav .logo {
-    font-size: 14px;
-    flex: 1 1 100%;
-    text-align: center;
-  }
-  .exam-nav-buttons {
-    order: 3;
-    flex: 1 1 100%;
-    justify-content: center;
-    gap: 4px;
-  }
-  .part-nav-btn {
-    padding: 4px 8px;
-    font-size: 11px;
-  }
-  .result-nav-btn {
-    padding: 4px 8px;
-    font-size: 11px;
-    margin-left: 0;
-  }
-  .top-nav .user-info {
-    font-size: 12px;
-    gap: 8px;
-  }
-  .logout-btn {
-    padding: 4px 10px;
-    font-size: 12px;
-  }
-  .main-layout {
-    flex-direction: column;
-    height: auto;
-  }
-  .left-panel {
-    width: 100%;
-    height: auto;
-    max-height: 50vh;
-    border-right: none;
-    border-bottom: 2px solid #e5e7eb;
-    padding: 20px 15px;
-  }
-  .left-panel h2 {
-    font-size: 20px;
-  }
-  .right-panel {
-    width: 100%;
-    height: auto;
-  }
-  .q-content {
-    padding: 15px;
-  }
-  .module-bar {
-    flex-wrap: wrap;
-    padding: 10px 15px;
-    gap: 10px;
-  }
-  .module-progress {
-    width: 100%;
-    margin-left: 0;
-  }
-  .module-progress-bar {
-    flex: 1;
-  }
-  .q-numbers-grid {
-    gap: 4px;
-  }
-  .q-num {
-    width: 28px;
-    height: 28px;
-    font-size: 11px;
-  }
-  .q-card {
-    padding: 15px;
-  }
-  .q-card-header {
-    gap: 10px;
-  }
-  .q-number {
-    width: 36px;
-    height: 36px;
-    font-size: 14px;
-  }
-  .q-title {
-    font-size: 13px;
-  }
-  .opt-text {
-    font-size: 13px;
-  }
-  .q-nav {
-    flex-wrap: wrap;
-    padding: 10px 15px;
-    gap: 8px;
-  }
-  .nav-btn {
-    padding: 10px 16px;
-    font-size: 13px;
-  }
-  .transition-stats .stats-grid {
-    grid-template-columns: 1fr;
-  }
-  .transition-card {
-    padding: 20px;
-    margin: 10px;
-  }
-  .results-breakdown {
-    flex-wrap: wrap;
-  }
-  .breakdown-item {
-    min-width: calc(33% - 8px);
-  }
-  .results-card {
-    padding: 20px;
-    margin: 10px;
-  }
-  .carnet-student {
-    grid-template-columns: 1fr;
-  }
-  .carnet-card {
-    padding: 20px;
-  }
-  .carnet-table {
-    font-size: 12px;
-  }
-  .carnet-table th, .carnet-table td {
-    padding: 8px 6px;
-  }
-  .marker-stats {
-    grid-template-columns: 1fr;
-  }
-  .marker-header {
-    padding: 20px;
-  }
-  .marker-header h2 {
-    font-size: 22px;
-  }
-  .admin-tabs {
-    flex-wrap: wrap;
-    gap: 4px;
-  }
-  .admin-tab {
-    padding: 8px 12px;
-    font-size: 12px;
-  }
-  .admin-page {
-    padding: 15px 10px;
-  }
-  .admin-card {
-    padding: 15px;
-  }
-  .users-table, .exams-table {
-    font-size: 12px;
-  }
-  .users-table th, .users-table td,
-  .exams-table th, .exams-table td {
-    padding: 8px 6px;
-  }
-  .btn-sm {
-    padding: 4px 8px;
-    font-size: 11px;
-  }
-  .exam-grid {
-    grid-template-columns: 1fr;
-  }
-  .exam-list-page {
-    padding: 20px 15px;
-  }
-  .auth-card {
-    padding: 25px 20px;
-  }
-}
-@media (max-width: 480px) {
-  .top-nav .logo {
-    font-size: 12px;
-  }
-  .part-nav-btn {
-    padding: 3px 6px;
-    font-size: 10px;
-  }
-  .q-num {
-    width: 24px;
-    height: 24px;
-    font-size: 10px;
-  }
-  .admin-tab {
-    padding: 6px 8px;
-    font-size: 11px;
-  }
+  .top-nav { flex-wrap: wrap; height: auto; padding: 10px 12px; gap: 8px; }
+  .top-nav .logo { font-size: 14px; flex: 1 1 100%; text-align: center; }
+  .exam-nav-buttons { order: 3; flex: 1 1 100%; justify-content: center; gap: 4px; }
+  .part-nav-btn { padding: 4px 8px; font-size: 11px; }
+  .result-nav-btn { padding: 4px 8px; font-size: 11px; margin-left: 0; }
+  .top-nav .user-info { font-size: 12px; gap: 8px; }
+  .logout-btn { padding: 4px 10px; font-size: 12px; }
+  .main-layout { flex-direction: column; height: auto; }
+  .left-panel { width: 100%; height: auto; max-height: 50vh; border-right: none; border-bottom: 2px solid #e5e7eb; padding: 20px 15px; }
+  .left-panel h2 { font-size: 20px; }
+  .right-panel { width: 100%; height: auto; }
+  .q-content { padding: 15px; }
+  .module-bar { flex-wrap: wrap; padding: 10px 15px; gap: 10px; }
+  .module-progress { width: 100%; margin-left: 0; }
+  .module-progress-bar { flex: 1; }
+  .q-numbers-grid { gap: 4px; }
+  .q-num { width: 28px; height: 28px; font-size: 11px; }
+  .q-card { padding: 15px; }
+  .q-card-header { gap: 10px; }
+  .q-number { width: 36px; height: 36px; font-size: 14px; }
+  .q-title { font-size: 13px; }
+  .opt-text { font-size: 13px; }
+  .q-nav { flex-wrap: wrap; padding: 10px 15px; gap: 8px; }
+  .nav-btn { padding: 10px 16px; font-size: 13px; }
+  .transition-stats .stats-grid { grid-template-columns: 1fr; }
+  .transition-card { padding: 20px; margin: 10px; }
+  .results-breakdown { flex-wrap: wrap; }
+  .breakdown-item { min-width: calc(33% - 8px); }
+  .results-card { padding: 20px; margin: 10px; }
+  .carnet-student { grid-template-columns: 1fr; }
+  .carnet-card { padding: 20px; }
+  .carnet-table { font-size: 12px; }
+  .carnet-table th, .carnet-table td { padding: 8px 6px; }
+  .marker-stats { grid-template-columns: 1fr; }
+  .marker-header { padding: 20px; }
+  .marker-header h2 { font-size: 22px; }
+  .admin-tabs { flex-wrap: wrap; gap: 4px; }
+  .admin-tab { padding: 8px 12px; font-size: 12px; }
+  .admin-page { padding: 15px 10px; }
+  .admin-card { padding: 15px; }
+  .users-table, .exams-table { font-size: 12px; }
+  .users-table th, .users-table td, .exams-table th, .exams-table td { padding: 8px 6px; }
+  .btn-sm { padding: 4px 8px; font-size: 11px; }
+  .exam-grid { grid-template-columns: 1fr; }
+  .exam-list-page { padding: 20px 15px; }
+  .auth-card { padding: 25px 20px; }
 }
 
-/* ==================== ƏL YAZISI (SVG) VƏ ÇAP TƏNZİMLƏMƏLƏRİ ==================== */
-.handwriting-svg {
-  width: 100%;
-  max-width: 100%;
-  height: auto;
-  display: block;
-}
-.handwriting-carnet-box {
-  background: #fff;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  padding: 4px 8px;
-  max-width: 240px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-}
-@media print {
-  body { background: #fff !important; }
-  .top-nav, .module-bar, .carnet-actions, .admin-page, .exam-nav-buttons, #resultsScreen, #transitionScreen { display: none !important; }
-  .carnet-page { padding: 0 !important; max-width: 100% !important; margin: 0 !important; }
-  .carnet-card { box-shadow: none !important; border: 1px solid #333 !important; padding: 20px !important; }
-  .carnet-table th { background: #1a1a2e !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .carnet-table tr.correct-row { background: #f0fdf4 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .carnet-table tr.incorrect-row { background: #fef2f2 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+@media (max-width: 480px) {
+  .top-nav .logo { font-size: 12px; }
+  .part-nav-btn { padding: 3px 6px; font-size: 10px; }
+  .q-num { width: 24px; height: 24px; font-size: 10px; }
+  .admin-tab { padding: 6px 8px; font-size: 11px; }
 }

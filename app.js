@@ -357,66 +357,39 @@ async function showMarkerDashboard(){
   document.getElementById('adminPage').classList.add('hidden');
   document.getElementById('markerDashboard').classList.remove('hidden');
   hideExamNavButtons();
-  const nameEl = document.getElementById('markerName');
-  if(nameEl) nameEl.textContent = currentUser.name;
-  const statsEl = document.getElementById('markerStats');
-  const listEl = document.getElementById('markerStudentList');
-  if(statsEl) statsEl.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:15px;color:#6b7280;">⏳ Statistikalar yüklənir...</div>';
-  if(listEl) listEl.innerHTML = '<div style="text-align:center;padding:25px;color:#6b7280;font-weight:500;">⏳ Şagirdlərin nəticələri yüklənir...</div>';
-
-  try {
-    const [students, allScores] = await Promise.all([
-      dbQuery('users', { role: 'student' }),
-      dbQuery('scores')
-    ]);
-    const studentList = Array.isArray(students) ? students : [];
-    const scoresList = Array.isArray(allScores) ? allScores : [];
-
-    const scoresByUser = {};
-    scoresList.forEach(s => {
-      const uid = s.user_id;
-      if(!scoresByUser[uid]) scoresByUser[uid] = [];
-      scoresByUser[uid].push(s);
-    });
-
-    renderMarkerStats(studentList, scoresList);
-    renderMarkerStudentList(studentList, scoresByUser);
-  } catch(err){
-    console.error('Marker paneli yüklənmə xətası:', err);
-    if(listEl) listEl.innerHTML = '<div class="no-data" style="color:#ef4444;">Məlumatları yükləmək mümkün olmadı.</div>';
-  }
+  document.getElementById('markerName').textContent = currentUser.name;
+  await renderMarkerStats();
+  await renderMarkerStudentList();
 }
 
-function renderMarkerStats(students, allScores){
+async function renderMarkerStats(){
   const container = document.getElementById('markerStats');
-  if(!container) return;
-  const studentList = students || [];
-  const scoresList = allScores || [];
-  const totalStudents = studentList.length;
-  const totalExams = scoresList.length;
-  let totalEdited = 0;
-  scoresList.forEach(s => { if(s.marker_edited) totalEdited++; });
+  const students = await dbQuery('users', { role: 'student' });
+  const totalStudents = students.length;
+  let totalExams = 0, totalEdited = 0;
+  for(const student of students){
+    const scores = await dbQuery('scores', { user_id: student.id });
+    totalExams += scores.length;
+    scores.forEach(s => { if(s.marker_edited) totalEdited++; });
+  }
   container.innerHTML = `<div class="marker-stat-card"><div class="stat-label">👥 Şagird Sayı</div><div class="stat-value">${totalStudents}</div></div><div class="marker-stat-card"><div class="stat-label">📝 Tamamlanan İmtahan</div><div class="stat-value">${totalExams}</div></div><div class="marker-stat-card"><div class="stat-label">✏️ Redaktə Edilmiş</div><div class="stat-value">${totalEdited}</div></div>`;
 }
 
-function renderMarkerStudentList(students, scoresByUser){
+async function renderMarkerStudentList(){
   const container = document.getElementById('markerStudentList');
-  if(!container) return;
-  const studentList = students || [];
-  const sMap = scoresByUser || {};
-  if(studentList.length === 0){ container.innerHTML = '<div class="no-data">Heç bir şagird tapılmadı</div>'; return; }
+  const students = await dbQuery('users', { role: 'student' });
+  if(students.length === 0){ container.innerHTML = '<div class="no-data">Heç bir şagird yoxdur</div>'; return; }
   let html = '';
-  for(const user of studentList){
-    const scores = sMap[user.id] || [];
-    const totalPoints = scores.reduce((sum, s) => sum + (parseFloat(s.total_points) || 0), 0);
-    const maxPoints = scores.reduce((sum, s) => sum + (parseFloat(s.max_points) || 0), 0);
+  for(const user of students){
+    const scores = await dbQuery('scores', { user_id: user.id });
+    const totalPoints = scores.reduce((sum, s) => sum + (s.total_points || 0), 0);
+    const maxPoints = scores.reduce((sum, s) => sum + (s.max_points || 0), 0);
     html += `<div class="marker-student-item"><div class="student-header"><div class="student-name">${user.name}</div><div class="student-email">${user.email}</div></div><div class="student-info">Tamamlanan imtahan: ${scores.length} • Ümumi bal: <strong>${totalPoints}/${maxPoints}</strong></div>`;
     if(scores.length > 0){
-      html += `<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;">`;
+      html += `<div style="margin-top:10px">`;
       for(const sc of scores){
         const exam = EXAMS[sc.exam_id];
-        const statusBadge = sc.marker_edited ? '<span style="font-size:10px;background:#dcfce7;color:#15803d;padding:2px 6px;border-radius:4px;margin-left:4px;">✏️ Yoxlanılıb</span>' : '';
-        html += `<button class="marker-exam-btn" onclick="viewCarnetFromAdmin('${user.email}','${sc.exam_id}')">📜 ${exam?.title || sc.exam_id} — ${sc.total_points}/${sc.max_points} (${sc.percent}%)${statusBadge}</button>`;
+        html += `<button class="marker-exam-btn" onclick="viewCarnetFromAdmin('${user.email}','${sc.exam_id}')">📜 ${exam?.title || sc.exam_id} — ${sc.total_points}/${sc.max_points} (${sc.percent}%)</button>`;
       }
       html += `</div>`;
     } else {
@@ -487,6 +460,7 @@ async function showExamList(){
   const grid = document.getElementById('examGrid');
   grid.innerHTML = '';
   
+  // İstifadəçinin bütün nəticələrini alırıq (həm DB, həm lokal)
   const scores = await dbQuery('scores', { user_id: currentUser.id });
   const scoresMap = {};
   scores.forEach(s => { scoresMap[s.exam_id] = s; });
@@ -513,6 +487,7 @@ async function showExamList(){
     card.className = 'exam-card';
 
     if(score){
+      // ✅ Şagird artıq bu imtahanda iştirak edib: 1 dəfəlik limit, nəticəyə baxış
       const pct = Math.round(score.percent || 0);
       const grade = score.grade || 1;
       const gradeText = score.grade_text || (grade >= 4 ? 'Uğurlu' : 'Tamamlandı');
@@ -545,6 +520,7 @@ async function showExamList(){
         </button>
       `;
     } else {
+      // ✅ Şagird hələ bu imtahanda iştirak etməyib: İmtahana başlamaq hüququ var
       card.onclick = () => startExam(exam.id);
       card.innerHTML = `
         <div class="exam-icon">${exam.icon}</div>
@@ -572,6 +548,7 @@ async function viewExamCarnet(examId){
 }
 
 async function startExam(examId){
+  // ✅ 1 DƏFƏLİK İŞTİRAK YOXLAMASI:
   const scores = await dbQuery('scores', { user_id: currentUser.id, exam_id: examId });
   const hasLocal = currentUser.scores && currentUser.scores[examId];
   if((scores && scores.length > 0) || hasLocal){
@@ -610,84 +587,126 @@ function renderLayout(){
   } else if(currentModuleId==='part6'){
     layout.innerHTML = `<div class="left-panel" id="leftPanel"></div><div class="right-panel"><div class="q-content" id="qContent"></div><div class="q-nav"><button class="nav-btn btn-prev" id="btnPrev" onclick="prevQuestion()">← Əvvəlki</button><div class="question-numbers" id="questionNumbers"></div><button class="nav-btn btn-next" id="btnNext" onclick="nextQuestion()">Növbəti →</button></div></div>`;
   } else if(currentModuleId==='part7'){
-    layout.innerHTML = `<div class="part7-layout"><div class="part7-left" id="part7Left"></div><div class="part7-right"><div class="part7-right-scroll" id="rightPanelScroll"></div><div class="part7-right-nav"><div class="q-nav"><button class="nav-btn btn-prev" id="btnPrev" onclick="prevQuestion()">← Əvvəlki</button><div class="question-numbers" id="questionNumbers"></div><button class="nav-btn btn-next" id="btnNext" onclick="nextQuestion()">Növbəti →</button></div></div></div></div>`;
+    layout.innerHTML = `<div class="left-panel" id="leftPanel"></div><div class="right-panel"><div class="right-panel-scroll" id="rightPanelScroll"></div><div class="q-nav"><button class="nav-btn btn-prev" id="btnPrev" onclick="prevQuestion()">← Əvvəlki</button><div class="question-numbers" id="questionNumbers"></div><button class="nav-btn btn-next" id="btnNext" onclick="nextQuestion()">Növbəti →</button></div></div>`;
   }
+  const transitionHTML = `<div class="transition-screen" id="transitionScreen"><div class="transition-card"><div class="transition-icon">🎯</div><div class="transition-title" id="tTitle">Modul Tamamlandı!</div><div class="transition-text" id="tText"></div><div class="transition-stats"><div class="stats-title">📊 İCMAL</div><div class="stats-grid"><div class="stat-box"><div class="stat-value" id="statAnswered">0</div><div class="stat-label">Cavablanan</div></div><div class="stat-box"><div class="stat-value" id="statRemaining">0</div><div class="stat-label">Boş</div></div><div class="stat-box"><div class="stat-value" id="statModule">—</div><div class="stat-label">Modul</div></div></div></div><div class="transition-buttons"><button class="btn-review" onclick="reviewCurrent()">↻ Geri Qayıt</button><button class="btn-continue" id="btnContinue" onkeypress="if(event.key==='Enter')continueToNext()">Növbəti Parta Keç →</button></div></div></div>`;
+  const resultsHTML = `<div class="results-screen" id="resultsScreen"><div class="results-card"><div class="results-emoji" id="rEmoji">🏆</div><div class="results-title" id="rTitle">İmtahan Tamamlandı!</div><div class="results-score"><span id="rScore">0</span>/<span id="rTotal">0</span></div><div class="results-msg" id="rMsg"></div><div class="results-breakdown" id="rBreakdown"></div><div class="final-review" id="finalReview"></div><button class="btn-carnet" onclick="showCarnet()" onkeypress="if(event.key==='Enter')showCarnet()">📜 NƏTİCƏ VƏRƏQİ</button><button class="btn-restart" onclick="backToExams()" onkeypress="if(event.key==='Enter')backToExams()">🏠 İmtahanlara Qayıt</button></div></div>`;
+  layout.insertAdjacentHTML('beforeend', transitionHTML);
+  layout.insertAdjacentHTML('beforeend', resultsHTML);
 }
+
+function renderQuestionNumbers(){
+  const mod = getCurrentModule();
+  const answers = getAnswers();
+  const items = mod.questions || mod.gaps || [];
+  const container = document.getElementById('questionNumbers');
+  if(!container) return;
+  let html = '<div class="q-numbers-grid">';
+  items.forEach((item, idx) => {
+    const num = item.num;
+    const ans = answers[num];
+    const hw = getHandwriting(num);
+    const isAnswered = Boolean((ans && ans.trim()) || hw);
+    const isCurrent = idx === currentQ;
+    let cls = 'q-num';
+    if(isAnswered) cls += ' answered';
+    if(isCurrent) cls += ' current';
+    html += `<div class="${cls}" onclick="goToQuestion(${idx})">${num}</div>`;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function goToQuestion(idx){ currentQ = idx; renderQuestion(); }
 
 function renderText(){
   const mod = getCurrentModule();
   const answers = getAnswers();
-  if(currentModuleId==='part7'){
-    const left = document.getElementById('part7Left');
-    if(!left) return;
-    let html = `<div class="reading-header"><h2>${mod.title}</h2><div class="subtitle">${mod.subtitle}</div><div class="instructions">${mod.instructions}</div></div>`;
-    mod.questions.forEach((q, idx) => {
-      const isCur = idx === currentQ;
-      const val = answers[q.num] || '';
-      html += `<div class="part7-question-row ${isCur ? 'active' : ''}" onclick="goToQuestion(${idx})"><span class="q-num-badge">${q.num}</span><span class="q-row-text">${q.text}</span><div class="person-select-wrapper" onclick="event.stopPropagation()"><select class="person-select ${val ? 'has-val' : ''}" onchange="selectPerson(${q.num}, this.value)"><option value="">—</option>`;
-      ['A','B','C','D'].forEach(letter => { html += `<option value="${letter}" ${val===letter ? 'selected' : ''}>${letter} — ${mod.people[letter].name}</option>`; });
-      html += `</select></div></div>`;
-    });
-    left.innerHTML = html;
-    return;
-  }
   const panel = document.getElementById('leftPanel');
-  if(!panel) return;
-  let html = `<div class="reading-header"><h2>${mod.title}</h2><div class="subtitle">${mod.subtitle || ''}</div><div class="instructions">${mod.instructions}</div></div><div class="reading-body">`;
+  let html = `<h2>${mod.title}</h2>`;
+  if(mod.subtitle) html += `<div class="subtitle">${mod.subtitle}</div>`;
+  html += `<div class="instructions">${mod.instructions}</div>`;
   if(currentModuleId==='part1'){
+    html += `<div class="article">`;
     mod.paragraphs.forEach(p => {
-      let t = p;
-      for(let i=1; i<=8; i++){
-        const ans = answers[i] || '';
-        const isCur = currentQ === (i-1);
-        const cls = isCur ? 'gap-pill active' : (ans ? 'gap-pill filled' : 'gap-pill');
-        const content = ans ? `<span class="gap-text">${ans}</span>` : `<span class="gap-num">${i}</span>`;
-        t = t.replace(`(${i}) _______`, `<span class="${cls}" onclick="goToQuestion(${i-1})">${content}</span>`);
-      }
-      html += `<p>${t}</p>`;
+      let text = p.replace(/\(0\) \[keeps\]/g, '<span class="gap-inline"><span class="gap-num" style="background:#9ca3af">0</span><span class="gap-box example">keeps</span></span>');
+      mod.questions.forEach(q => {
+        const regex = new RegExp(`\\(${q.num}\\)\\s*_______`, 'g');
+        const val = answers[q.num] || '';
+        let cls = val ? 'gap-box filled' : 'gap-box empty';
+        let numCls = q.num === mod.questions[currentQ]?.num ? 'gap-num active-gap' : 'gap-num';
+        text = text.replace(regex, `<span class="gap-inline"><span class="${numCls}">${q.num}</span><span class="${cls}">${val || '___'}</span></span>`);
+      });
+      html += `<p>${text}</p>`;
     });
+    html += `</div>`;
   } else if(currentModuleId==='part2'){
+    html += `<div class="article">`;
     mod.paragraphs.forEach(p => {
-      let t = p;
-      mod.gaps.forEach((g, idx) => {
-        const ans = answers[g.num] || (getHandwriting(g.num) ? '[Əl yazısı]' : '');
-        const isCur = currentQ === idx;
-        const cls = isCur ? 'gap-pill active' : (ans ? 'gap-pill filled' : 'gap-pill');
-        const content = ans ? `<span class="gap-text">${ans}</span>` : `<span class="gap-num">${g.num}</span>`;
-        t = t.replace(new RegExp(`\\(${g.num}\\)`), `<span class="${cls}" onclick="goToQuestion(${idx})">${content}</span>`);
+      let text = p.replace(/\(0\) ALL/g, '<span class="gap-inline"><span class="gap-num" style="background:#9ca3af">0</span><span class="gap-box example">ALL</span></span>');
+      mod.gaps.forEach(g => {
+        const regex = new RegExp(`\\(${g.num}\\)`, 'g');
+        const val = answers[g.num] || '';
+        let cls = val ? 'gap-box filled' : 'gap-box empty';
+        let numCls = g.num === mod.gaps[currentQ]?.num ? 'gap-num active-gap' : 'gap-num';
+        text = text.replace(regex, `<span class="gap-inline"><span class="${numCls}">${g.num}</span><span class="${cls}">${val || '___'}</span></span>`);
       });
-      html += `<p>${t}</p>`;
+      html += `<p>${text}</p>`;
     });
+    html += `</div>`;
   } else if(currentModuleId==='part3'){
+    html += `<div style="background:linear-gradient(135deg,#1a1a2e 0%,#2d2d4e 100%);border-radius:10px;padding:18px 22px;margin-bottom:22px;color:#fff;"><h4 style="font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:#fbbf24;margin-bottom:12px;font-weight:700;">📋 Key Words</h4><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">`;
+    mod.keywords.forEach(k => { html += `<div style="background:rgba(255,255,255,0.1);border-radius:6px;padding:6px 10px;display:flex;align-items:center;gap:8px;font-size:13px;"><div style="background:#fbbf24;color:#1a1a2e;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;">${k.num}</div><div style="font-weight:700;">${k.word}</div></div>`; });
+    html += `</div></div><div class="article">`;
     mod.paragraphs.forEach(p => {
-      let t = p;
-      mod.gaps.forEach((g, idx) => {
-        const ans = answers[g.num] || (getHandwriting(g.num) ? '[Əl yazısı]' : '');
-        const isCur = currentQ === idx;
-        const cls = isCur ? 'gap-pill active' : (ans ? 'gap-pill filled' : 'gap-pill');
-        const content = ans ? `<span class="gap-text">${ans}</span>` : `<span class="gap-num">${g.num}</span>`;
-        t = t.replace(new RegExp(`\\(${g.num}\\)`), `<span class="${cls}" onclick="goToQuestion(${idx})">${content}</span>`);
+      let text = p.replace(/\(0\) SUITABLE/g, '<span class="gap-inline"><span class="gap-num" style="background:#9ca3af">0</span><span class="gap-box example">SUITABLE</span></span>');
+      mod.gaps.forEach(g => {
+        const regex = new RegExp(`\\(${g.num}\\)`, 'g');
+        const val = answers[g.num] || '';
+        let cls = val ? 'gap-box filled' : 'gap-box empty';
+        let numCls = g.num === mod.gaps[currentQ]?.num ? 'gap-num active-gap' : 'gap-num';
+        text = text.replace(regex, `<span class="gap-inline"><span class="${numCls}">${g.num}</span><span class="${cls}">${val || '___'}</span></span>`);
       });
-      html += `<p>${t}</p>`;
+      html += `<p>${text}</p>`;
     });
+    html += `</div>`;
   } else if(currentModuleId==='part4'){
-    html += `<div style="background:#f9fafb;border-radius:12px;padding:20px;border-left:4px solid #1a1a2e;margin-bottom:20px;"><h4 style="font-family:'Merriweather',serif;color:#1a1a2e;margin-bottom:12px;">Qaydalar:</h4><ul style="font-size:13px;line-height:1.8;color:#555;padding-left:20px;"><li>İkinci cümləni elə tamamlayın ki, birinci cümlə ilə eyni mənanı versin.</li><li>Verilən açar sözü <strong>dəyişdirməyin</strong>.</li><li><strong>İki ilə beş söz</strong> arasında istifadə edin (qısaltmalar 2 söz sayılır, məs: don't = 2 söz).</li><li>Cavabları böyük hərflərlə yazın.</li></ul></div>`;
-  } else if(currentModuleId==='part5'){
-    mod.paragraphs.forEach(p => { html += `<p>${p}</p>`; });
-  } else if(currentModuleId==='part6'){
-    mod.paragraphs.forEach(p => {
-      let t = p;
-      mod.gaps.forEach((g, idx) => {
-        const ans = answers[g.num] || '';
-        const isCur = currentQ === idx;
-        const cls = isCur ? 'gap-pill active' : (ans ? 'gap-pill filled' : 'gap-pill');
-        const content = ans ? `<span class="gap-text">${ans}</span>` : `<span class="gap-num">[${g.num}]</span>`;
-        t = t.replace(`[${g.num}]______`, `<span class="${cls}" onclick="goToQuestion(${idx})">${content}</span>`);
-      });
-      html += `<p>${t}</p>`;
+    html += `<div class="article">`;
+    mod.questions.forEach(q => {
+      const val = answers[q.num] || '';
+      let cls = val ? 'gap-box filled' : 'gap-box empty';
+      let numCls = q.num === mod.questions[currentQ]?.num ? 'gap-num active-gap' : 'gap-num';
+      html += `<p style="margin-bottom:12px;"><strong style="color:#1a1a2e;">${q.num}.</strong> ${q.original}<br><span style="display:inline-block;background:#1a1a2e;color:#fbbf24;padding:3px 14px;border-radius:3px;font-weight:bold;font-size:14px;margin:6px 0;letter-spacing:1px;">${q.keyword}</span><br>${q.sentenceStart} <span class="gap-inline"><span class="${numCls}">${q.num}</span><span class="${cls}">${val || '___'}</span></span> ${q.sentenceEnd}</p>`;
     });
+    html += `</div>`;
+  } else if(currentModuleId==='part5'){
+    html += `<div class="article">`;
+    mod.paragraphs.forEach((p, idx) => { html += `<p><span style="display:inline-block;background:#1a1a2e;color:#fbbf24;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;margin-right:6px;vertical-align:middle;">§${idx+1}</span>${p}</p>`; });
+    html += `</div>`;
+  } else if(currentModuleId==='part6'){
+    html += `<div class="article">`;
+    mod.paragraphs.forEach(p => {
+      let text = p;
+      mod.gaps.forEach(g => {
+        const regex = new RegExp(`\\[${g.num}\\]______`, 'g');
+        const val = answers[g.num] || '';
+        let cls = val ? 'gap-box filled' : 'gap-box empty';
+        let numCls = g.num === mod.gaps[currentQ]?.num ? 'gap-num active-gap' : 'gap-num';
+        text = text.replace(regex, `<span class="gap-inline"><span class="${numCls}">${g.num}</span><span class="${cls}">${val || '___'}</span></span>`);
+      });
+      html += `<p>${text}</p>`;
+    });
+    html += `</div>`;
+  } else if(currentModuleId==='part7'){
+    const q = mod.questions[currentQ];
+    const val = answers[q.num] || '';
+    html += `<div style="background:#fff;border:2px solid #e5e7eb;border-radius:12px;padding:20px 24px;margin-top:10px;"><div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;"><div style="background:#1a1a2e;color:#fbbf24;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;">${q.num}</div><div style="font-size:15px;font-weight:600;color:#1a1a2e;line-height:1.4;">${q.text}</div></div><div style="display:flex;gap:10px;padding-left:44px;">`;
+    ['A','B','C','D'].forEach(l => {
+      let bg = val===l ? '#2563eb' : '#fff', br = val===l ? '#2563eb' : '#e5e7eb', co = val===l ? '#fff' : '#6b7280';
+      html += `<div onclick="selectPerson(${q.num},'${l}')" style="width:44px;height:44px;border:2px solid ${br};border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:${co};cursor:pointer;transition:all 0.15s;background:${bg};">${l}</div>`;
+    });
+    html += `</div></div>`;
   }
-  html += `</div>`;
   panel.innerHTML = html;
 }
 
@@ -698,24 +717,6 @@ let activePoints = [];
 let activeColor = '#1a1a2e';
 let activeWidth = 3.5;
 let isDrawing = false;
-
-function parseAnswerPayload(rawAnswer, hwDirect){
-  if(!rawAnswer && !hwDirect) return { text: '—', svg: null };
-  let text = typeof rawAnswer === 'string' ? rawAnswer : (rawAnswer || '—');
-  let svg = hwDirect || null;
-
-  if(typeof text === 'string'){
-    if(text.includes('<!--FCE_HANDWRITING_SVG-->')){
-      const parts = text.split('<!--FCE_HANDWRITING_SVG-->');
-      text = parts[0].trim() || '[Əl yazısı]';
-      svg = parts[1] || svg;
-    } else if(text.trim().startsWith('<svg') && text.trim().endsWith('</svg>')){
-      svg = text.trim();
-      text = '[Əl yazısı]';
-    }
-  }
-  return { text: text || '—', svg: svg };
-}
 
 function getHandwriting(num, examId = currentExamId, userId = currentUser?.id){
   if(!num) return null;
@@ -786,137 +787,168 @@ function clearHandwriting(num, examId = currentExamId, userId = currentUser?.id)
   renderQuestionNumbers();
 }
 
-function strokesToSvg(strokes, width = 500, height = 160){
+function strokesToSvg(strokes, width = 540, height = 180){
   if(!strokes || strokes.length === 0) return '';
   let paths = '';
-  strokes.forEach(s => {
-    const pts = s.points;
+  strokes.forEach(stroke => {
+    const pts = stroke.points;
     if(!pts || pts.length === 0) return;
-    let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
-    for(let i = 1; i < pts.length; i++){
-      d += ` L ${pts[i].x.toFixed(1)} ${pts[i].y.toFixed(1)}`;
+    const col = stroke.color || '#1a1a2e';
+    const sw = stroke.width || 3.5;
+    if(pts.length === 1){
+      paths += `<circle cx="${pts[0].x.toFixed(1)}" cy="${pts[0].y.toFixed(1)}" r="${(sw/2).toFixed(1)}" fill="${col}" />`;
+    } else {
+      let d = `M ${pts[0].x.toFixed(1)} ${pts[0].y.toFixed(1)}`;
+      for(let i=1; i<pts.length; i++){
+        const xc = ((pts[i-1].x + pts[i].x) / 2).toFixed(1);
+        const yc = ((pts[i-1].y + pts[i].y) / 2).toFixed(1);
+        d += ` Q ${pts[i-1].x.toFixed(1)} ${pts[i-1].y.toFixed(1)}, ${xc} ${yc}`;
+      }
+      d += ` L ${pts[pts.length - 1].x.toFixed(1)} ${pts[pts.length - 1].y.toFixed(1)}`;
+      paths += `<path d="${d}" stroke="${col}" stroke-width="${sw}" fill="none" stroke-linecap="round" stroke-linejoin="round" />`;
     }
-    const color = s.color || '#1a1a2e';
-    const w = s.width || 3.5;
-    paths += `<path d="${d}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" />`;
   });
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" class="handwriting-svg" style="width:100%;height:auto;max-height:85px;display:block;">${paths}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" style="width:100%;max-width:100%;height:auto;display:block;">${paths}</svg>`;
 }
 
 function renderHandwritingButtonAndPreview(num, hwSvg){
-  if(!['part2', 'part3', 'part4'].includes(currentModuleId)) return '';
-  let previewHtml = '';
+  let html = `
+    <div style="margin-top:10px;padding-top:10px;border-top:1px dashed #e5e7eb;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+        <button type="button" onclick="openHandwritingModal(${num})" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:#f8fafc;border:1.5px solid #cbd5e1;border-radius:8px;font-size:12.5px;font-weight:600;color:#1a1a2e;cursor:pointer;transition:all 0.15s;">
+          ✍️ Əl ilə yaz (Touch / Qələm)
+        </button>
+        ${hwSvg ? `<span style="font-size:12px;color:#16a34a;font-weight:700;">✓ Əl yazısı əlavə edildi</span>` : `<span style="font-size:11.5px;color:#9ca3af;">Telefon/planşetdə barmaqla və ya stylusla yazmaq mümkündür</span>`}
+      </div>
+  `;
   if(hwSvg){
-    previewHtml = `
-      <div class="handwriting-preview-box" style="margin-top:10px;padding:8px 12px;background:#f8fafc;border:1.5px solid #3b82f6;border-radius:8px;position:relative;">
-        <div style="font-size:11px;font-weight:700;color:#2563eb;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between;">
-          <span>✍️ Əl Yazınız (Vektor / SVG):</span>
-          <button type="button" onclick="clearHandwriting(${num})" style="background:transparent;border:none;color:#ef4444;font-size:11px;cursor:pointer;font-weight:600;">🗑️ Sil</button>
+    html += `
+      <div style="margin-top:8px;background:#fff;border:1.5px solid #93c5fd;border-radius:8px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 1px 4px rgba(37,99,235,0.06);">
+        <div style="flex:1;max-height:55px;overflow:hidden;">${hwSvg}</div>
+        <div style="display:flex;gap:6px;">
+          <button type="button" onclick="openHandwritingModal(${num})" style="padding:5px 9px;font-size:11px;background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe;border-radius:6px;cursor:pointer;font-weight:600;">Dəyiş</button>
+          <button type="button" onclick="clearHandwriting(${num})" style="padding:5px 9px;font-size:11px;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:6px;cursor:pointer;font-weight:600;">Sil</button>
         </div>
-        <div style="background:#fff;border-radius:6px;padding:4px;border:1px solid #e2e8f0;">${hwSvg}</div>
       </div>
     `;
   }
-  return `
-    <div style="margin-top:10px;">
-      <button type="button" class="btn-handwriting" onclick="openHandwritingModal(${num})" style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:#eff6ff;color:#2563eb;border:1.5px dashed #3b82f6;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;">
-        <span>✍️</span>
-        <span>${hwSvg ? 'Əl Yazısını Redaktə Et' : 'Planşet / Telefonla Əllə Yaz (SVG)'}</span>
-      </button>
-      ${previewHtml}
-    </div>
-  `;
+  html += `</div>`;
+  return html;
 }
 
 function openHandwritingModal(num){
   activeHwNum = num;
   const existingStrokes = getHandwritingStrokes(num);
   activeStrokes = existingStrokes ? JSON.parse(JSON.stringify(existingStrokes)) : [];
+  
+  const existingModal = document.getElementById('hwModal');
+  if(existingModal) existingModal.remove();
 
-  let modal = document.getElementById('handwritingModal');
-  if(!modal){
-    modal = document.createElement('div');
-    modal.id = 'handwritingModal';
-    modal.className = 'handwriting-modal';
-    document.body.appendChild(modal);
-  }
-
+  const modal = document.createElement('div');
+  modal.id = 'hwModal';
+  modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.75);backdrop-filter:blur(3px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;animation:fadeIn 0.2s;';
+  
   modal.innerHTML = `
-    <div class="hw-modal-backdrop" onclick="closeHandwritingModal()"></div>
-    <div class="hw-modal-content">
-      <div class="hw-modal-header">
-        <div class="hw-modal-title">
-          <span>✍️ Sual №${num} — Əllə Yazı (Vektor / SVG Canvas)</span>
+    <div style="background:#fff;border-radius:16px;max-width:600px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,0.3);display:flex;flex-direction:column;overflow:hidden;">
+      <!-- Header -->
+      <div style="background:#1a1a2e;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;">
+          <span>✍️ Sual ${num} — Əl ilə cavab yazın</span>
         </div>
-        <button class="hw-close-btn" onclick="closeHandwritingModal()">✕</button>
+        <button onclick="closeHandwritingModal()" style="background:transparent;border:none;color:#94a3b8;font-size:20px;cursor:pointer;line-height:1;">&times;</button>
       </div>
-      <div class="hw-modal-body">
-        <div class="hw-toolbar">
-          <div class="hw-colors">
-            <button class="hw-color-btn ${activeColor==='#1a1a2e'?'active':''}" style="background:#1a1a2e;" onclick="setHwColor('#1a1a2e', this)"></button>
-            <button class="hw-color-btn ${activeColor==='#2563eb'?'active':''}" style="background:#2563eb;" onclick="setHwColor('#2563eb', this)"></button>
-            <button class="hw-color-btn ${activeColor==='#059669'?'active':''}" style="background:#059669;" onclick="setHwColor('#059669', this)"></button>
-          </div>
-          <div class="hw-widths">
-            <button class="hw-width-btn ${activeWidth===2?'active':''}" onclick="setHwWidth(2, this)">Nazik</button>
-            <button class="hw-width-btn ${activeWidth===3.5?'active':''}" onclick="setHwWidth(3.5, this)">Orta</button>
-            <button class="hw-width-btn ${activeWidth===5?'active':''}" onclick="setHwWidth(5, this)">Qalın</button>
-          </div>
-          <div style="flex:1"></div>
-          <button class="hw-action-btn" onclick="undoHwStroke()">↩ Geri Al</button>
-          <button class="hw-action-btn hw-clear-btn" onclick="clearHwCanvas()">🗑️ Təmizlə</button>
+
+      <!-- Canvas Area -->
+      <div style="padding:16px;background:#f8fafc;">
+        <div style="position:relative;background:#fff;border:2px solid #cbd5e1;border-radius:12px;overflow:hidden;box-shadow:inset 0 2px 6px rgba(0,0,0,0.04);">
+          <!-- Xəttli köməkçi dəftər toru -->
+          <div style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;background-image:linear-gradient(#f1f5f9 1px, transparent 1px);background-size:100% 30px;opacity:0.7;"></div>
+          <canvas id="hwCanvas" width="540" height="180" style="width:100%;height:180px;display:block;touch-action:none;cursor:crosshair;position:relative;z-index:1;"></canvas>
         </div>
-        <div class="hw-canvas-container">
-          <canvas id="hwCanvas" width="540" height="180"></canvas>
-          <div class="hw-canvas-hint">Barmağınız və ya stilusla bu çərçivəyə yazın</div>
+        <div style="font-size:11.5px;color:#64748b;margin-top:6px;text-align:center;">
+          💡 Barmaqla və ya stylus qələmlə sərbəst yazın. Cavab avtomatik vektor SVG kimi qeyd olunacaq.
         </div>
       </div>
-      <div class="hw-modal-footer">
-        <button class="hw-btn-cancel" onclick="closeHandwritingModal()">İmtina</button>
-        <button class="hw-btn-save" onclick="saveHandwritingModal()">💾 Yadda Saxla və Əlavə Et</button>
+
+      <!-- Toolbar -->
+      <div style="padding:12px 16px;background:#f1f5f9;border-top:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <!-- Rənglər -->
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;">Rəng:</span>
+          <button type="button" onclick="setHwColor('#1a1a2e', this)" class="hw-color-btn active" style="width:24px;height:24px;border-radius:50%;background:#1a1a2e;border:2px solid #fff;box-shadow:0 0 0 2px #2563eb;cursor:pointer;"></button>
+          <button type="button" onclick="setHwColor('#2563eb', this)" class="hw-color-btn" style="width:24px;height:24px;border-radius:50%;background:#2563eb;border:2px solid #fff;box-shadow:none;cursor:pointer;"></button>
+          <button type="button" onclick="setHwColor('#dc2626', this)" class="hw-color-btn" style="width:24px;height:24px;border-radius:50%;background:#dc2626;border:2px solid #fff;box-shadow:none;cursor:pointer;"></button>
+        </div>
+
+        <!-- Qalınlıq -->
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;">Qələm:</span>
+          <button type="button" onclick="setHwWidth(2, this)" class="hw-width-btn" style="padding:4px 8px;font-size:11px;background:#fff;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;">İncə</button>
+          <button type="button" onclick="setHwWidth(3.5, this)" class="hw-width-btn active" style="padding:4px 8px;font-size:11px;background:#1a1a2e;color:#fff;border:1px solid #1a1a2e;border-radius:6px;cursor:pointer;font-weight:700;">Orta</button>
+          <button type="button" onclick="setHwWidth(5.5, this)" class="hw-width-btn" style="padding:4px 8px;font-size:11px;background:#fff;border:1px solid #cbd5e1;border-radius:6px;cursor:pointer;">Qalın</button>
+        </div>
+
+        <!-- Əməliyyatlar -->
+        <div style="display:flex;gap:6px;">
+          <button type="button" onclick="undoHwStroke()" style="padding:6px 12px;background:#fff;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;color:#334155;">↩️ Geri al</button>
+          <button type="button" onclick="clearHwCanvas()" style="padding:6px 12px;background:#fff;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;color:#dc2626;">🗑️ Təmizlə</button>
+        </div>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div style="padding:14px 20px;background:#fff;border-top:1px solid #e2e8f0;display:flex;justify-content:flex-end;gap:10px;">
+        <button type="button" onclick="closeHandwritingModal()" style="padding:10px 18px;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;">İmtina</button>
+        <button type="button" onclick="saveHandwritingModal()" style="padding:10px 22px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;box-shadow:0 2px 8px rgba(22,163,74,0.3);">💾 Yadda Saxla (SVG)</button>
       </div>
     </div>
   `;
 
-  modal.style.display = 'flex';
+  document.body.appendChild(modal);
   initHwCanvas();
-  redrawHwCanvas();
 }
 
 function closeHandwritingModal(){
-  const modal = document.getElementById('handwritingModal');
-  if(modal) modal.style.display = 'none';
-  activeHwNum = null;
+  const m = document.getElementById('hwModal');
+  if(m) m.remove();
 }
 
 function setHwColor(color, btn){
   activeColor = color;
-  document.querySelectorAll('.hw-color-btn').forEach(b => b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
+  document.querySelectorAll('.hw-color-btn').forEach(b => b.style.boxShadow = 'none');
+  if(btn) btn.style.boxShadow = '0 0 0 2px #2563eb';
 }
 
-function setHwWidth(width, btn){
-  activeWidth = width;
-  document.querySelectorAll('.hw-width-btn').forEach(b => b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
+function setHwWidth(w, btn){
+  activeWidth = w;
+  document.querySelectorAll('.hw-width-btn').forEach(b => {
+    b.style.background = '#fff';
+    b.style.color = '#334155';
+    b.style.borderColor = '#cbd5e1';
+    b.style.fontWeight = '400';
+  });
+  if(btn){
+    btn.style.background = '#1a1a2e';
+    btn.style.color = '#fff';
+    btn.style.borderColor = '#1a1a2e';
+    btn.style.fontWeight = '700';
+  }
 }
 
 function initHwCanvas(){
   const canvas = document.getElementById('hwCanvas');
   if(!canvas) return;
   const ctx = canvas.getContext('2d');
+  
+  redrawHwCanvas();
 
   function getCanvasPos(e){
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
-    let clientX, clientY;
+    let clientX = e.clientX, clientY = e.clientY;
     if(e.touches && e.touches.length > 0){
       clientX = e.touches[0].clientX;
       clientY = e.touches[0].clientY;
-    } else {
-      clientX = e.clientX;
-      clientY = e.clientY;
     }
     return {
       x: (clientX - rect.left) * scaleX,
@@ -947,6 +979,7 @@ function initHwCanvas(){
     e.preventDefault();
     const pos = getCanvasPos(e);
     activePoints.push(pos);
+    
     ctx.lineTo(pos.x, pos.y);
     ctx.stroke();
   }
@@ -1010,6 +1043,7 @@ function saveHandwritingModal(){
   const svg = strokesToSvg(activeStrokes, 540, 180);
   setHandwriting(activeHwNum, svg, activeStrokes);
   
+  // Əgər yazılı cavab boşdursa, sualı avtomatik cavablanmış kimi qeyd edirik
   const answers = getAnswers();
   if(!answers[activeHwNum] || !answers[activeHwNum].trim()){
     answers[activeHwNum] = '[Əl yazısı]';
@@ -1252,7 +1286,7 @@ async function showFinalResults(){
       if(m.questions && m.questions.includes(it)) correct = answers[it.num] === it.answer;
       else if(m.gaps && m.gaps.includes(it)) correct = normalizeAnswer(answers[it.num]) === it.answer;
       if(correct){ pCorrect++; pEarned += pt; totalCorrect++; }
-      review.push({ part: pid, num: it.num, userAns: answers[it.num] || '—', correct: correct, answer: it.answer, points: pt, earned: correct ? pt : 0, given: it.given, personName: pid === 'part7' ? m.people[it.answer]?.name : null, explanation: it.explanation, handwriting_svg: getHandwriting(it.num) });
+      review.push({ part: pid, num: it.num, userAns: answers[it.num] || (getHandwriting(it.num) ? '[Əl yazısı]' : '—'), correct: correct, answer: it.answer, points: pt, earned: correct ? pt : 0, given: it.given, personName: pid === 'part7' ? m.people[it.answer]?.name : null, explanation: it.explanation, handwriting_svg: getHandwriting(it.num, currentExamId) });
     }
     breakdown.push({ label: `Part ${m.moduleNum}`, score: pCorrect, total: items.length, points: pEarned, maxPoints: items.reduce((s, it) => s + (parseFloat(pointsMap[pid]?.[it.num]) || 1), 0) });
     earnedPoints += pEarned;
@@ -1266,23 +1300,7 @@ async function showFinalResults(){
   else { grade = 1; gradeText = 'Qeyri-qənaətbəxş'; }
   const scoreRecord = await dbInsert('scores', { user_id: currentUser.id, exam_id: currentExamId, total_points: earnedPoints, max_points: totalPoints, percent: pct, correct_count: totalCorrect, total_questions: totalQ, grade: grade, grade_text: gradeText });
   if(scoreRecord){
-    const answerRecords = review.map(r => {
-      let dbUserAns = r.userAns || '—';
-      if(r.handwriting_svg){
-        dbUserAns = (dbUserAns && dbUserAns !== '[Əl yazısı]' && dbUserAns !== '—' ? dbUserAns : '[Əl yazısı]') +
-                    '<!--FCE_HANDWRITING_SVG-->' + r.handwriting_svg;
-      }
-      return {
-        score_id: scoreRecord.id,
-        part_id: r.part,
-        question_num: r.num,
-        user_answer: dbUserAns,
-        correct_answer: r.answer,
-        is_correct: r.correct,
-        points: r.earned,
-        max_points: r.points
-      };
-    });
+    const answerRecords = review.map(r => ({ score_id: scoreRecord.id, part_id: r.part, question_num: r.num, user_answer: r.userAns, correct_answer: r.answer, is_correct: r.correct, points: r.earned, max_points: r.points, handwriting_svg: r.handwriting_svg }));
     if(answerRecords.length > 0) await apiPost('answers', answerRecords);
   }
   if(!currentUser.scores) currentUser.scores = {};
@@ -1364,13 +1382,11 @@ async function showCarnet(){
     const m = MODULES[a.part_id];
     const rowClass = a.is_correct ? 'correct-row' : 'incorrect-row';
     const qNum = parseInt(a.question_num);
-    const parsed = parseAnswerPayload(a.user_answer, a.handwriting_svg);
-    const hwSvg = parsed.svg 
-      || a.handwriting_svg 
+    const hwSvg = a.handwriting_svg 
       || getHandwriting(qNum, examId) 
       || currentUser?.scores?.[examId]?.review?.find(r => r.num === qNum)?.handwriting_svg;
       
-    let ansCell = `<div style="font-weight:600;font-size:14px;color:#1a1a2e;">${parsed.text || (hwSvg ? '[Əl yazısı]' : '—')}</div>`;
+    let ansCell = `<div style="font-weight:600;font-size:14px;color:#1a1a2e;">${a.user_answer || (hwSvg ? '[Əl yazısı]' : '—')}</div>`;
     if(hwSvg){
       ansCell += `
         <div class="handwriting-carnet-box" style="margin-top:6px;background:#f8fafc;border:1.5px solid #93c5fd;border-radius:8px;padding:6px 10px;max-width:280px;box-shadow:0 1px 4px rgba(37,99,235,0.08);">
@@ -1486,26 +1502,13 @@ function parsePDFAndCreateExam(text) {
 
 async function renderAdminUsers(){
   const tbody = document.getElementById('usersTableBody');
-  if(!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:15px;color:#6b7280;">⏳ Yüklənir...</td></tr>';
-  const [users, allScores] = await Promise.all([
-    dbQuery('users'),
-    dbQuery('scores')
-  ]);
-  const userList = Array.isArray(users) ? users : [];
-  const scoreList = Array.isArray(allScores) ? allScores : [];
-  const scoresByUser = {};
-  scoreList.forEach(s => {
-    const uid = s.user_id;
-    if(!scoresByUser[uid]) scoresByUser[uid] = [];
-    scoresByUser[uid].push(s);
-  });
+  const users = await dbQuery('users');
   tbody.innerHTML = '';
-  for(const u of userList){
-    const scores = scoresByUser[u.id] || [];
+  for(const u of users){
+    const scores = await dbQuery('scores', { user_id: u.id });
     const completed = scores.length;
-    const totalEarned = scores.reduce((sum, s) => sum + (parseFloat(s.total_points) || 0), 0);
-    const totalMax = scores.reduce((sum, s) => sum + (parseFloat(s.max_points) || 0), 0);
+    const totalEarned = scores.reduce((sum, s) => sum + (s.total_points || 0), 0);
+    const totalMax = scores.reduce((sum, s) => sum + (s.max_points || 0), 0);
     const balText = completed > 0 ? `${totalEarned}/${totalMax}` : '—';
     const tr = document.createElement('tr');
     tr.innerHTML = `<td>${u.name}</td><td>${u.email}</td><td><span class="user-role ${u.role==='admin' ? 'role-admin' : u.role==='marker' ? 'role-marker' : 'role-student'}">${u.role}</span></td><td>${completed} imtahan</td><td><strong style="color:#1a1a2e">${balText}</strong></td><td>${u.role !== 'admin' ? `<button class="btn-sm btn-view" onclick="viewUserAnswers('${u.email}')">Cavablar</button><button class="btn-sm btn-del" onclick="deleteUser('${u.email}')">Sil</button>` : ''}</td>`;
@@ -1533,15 +1536,9 @@ async function viewUserAnswers(email){
     const answers = await dbQuery('answers', { score_id: sc.id });
     html += `<div style="margin-bottom:16px;padding:12px;background:#fff;border-radius:8px;border:1px solid #e5e7eb"><strong>${exam?.title || sc.exam_id}</strong> — ${sc.total_points}/${sc.max_points} bal (${sc.percent}%) — Qiymət: ${sc.grade}<br><small>${new Date(sc.created_at).toLocaleString('az-AZ')}</small>`;
     if(answers.length > 0){
-      html += `<div style="margin-top:10px;max-height:360px;overflow-y:auto">`;
+      html += `<div style="margin-top:10px;max-height:300px;overflow-y:auto">`;
       answers.forEach(a => {
-        const parsed = parseAnswerPayload(a.user_answer, a.handwriting_svg);
-        const hwSvg = parsed.svg || a.handwriting_svg;
-        html += `<div style="padding:8px 6px;border-bottom:1px solid #e5e7eb;font-size:13px"><div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-weight:700;min-width:60px">${a.part_id}#${a.question_num}</span><span style="flex:1;color:${a.is_correct ? '#16a34a' : '#dc2626'};${a.is_correct ? '' : 'text-decoration:line-through'}">${parsed.text || '—'}</span><span style="color:#16a34a;font-weight:700">${a.correct_answer} (${a.points}/${a.max_points})</span></div>`;
-        if(hwSvg){
-          html += `<div style="margin-top:4px;background:#f8fafc;border:1px solid #93c5fd;border-radius:6px;padding:4px 8px;max-width:240px;"><div style="font-size:10px;color:#2563eb;font-weight:700">✍️ Əl yazısı:</div><div style="background:#fff;border-radius:3px;padding:2px;display:flex;justify-content:center;">${hwSvg}</div></div>`;
-        }
-        html += `</div>`;
+        html += `<div style="display:flex;justify-content:space-between;padding:6px;border-bottom:1px solid #e5e7eb;font-size:13px"><span style="font-weight:700;min-width:60px">${a.part_id}#${a.question_num}</span><span style="flex:1;color:${a.is_correct ? '#16a34a' : '#dc2626'};${a.is_correct ? '' : 'text-decoration:line-through'}">${a.user_answer || '—'}</span><span style="color:#16a34a;font-weight:700">${a.correct_answer} (${a.points}/${a.max_points})</span></div>`;
       });
       html += `</div>`;
     }
@@ -1549,7 +1546,7 @@ async function viewUserAnswers(email){
   }
   html += `</div>`;
   const w = window.open('', '_blank', 'width=700,height=600');
-  w.document.write(`<html><head><title>${user.name} — Cavablar</title><style>body{font-family:Inter,sans-serif;padding:0;background:#f0f0eb} .handwriting-svg, svg{max-width:100%;height:auto;max-height:55px;}</style></head><body>${html}</body></html>`);
+  w.document.write(`<html><head><title>${user.name} — Cavablar</title><style>body{font-family:Inter,sans-serif;padding:0;background:#f0f0eb}</style></head><body>${html}</body></html>`);
 }
 
 function renderAdminExams(){
@@ -1609,35 +1606,19 @@ async function savePointsForPart(examId, pid){
 
 async function renderStudentResultsList(){
   const container = document.getElementById('studentResultsList');
-  if(!container) return;
-  container.innerHTML = '<div style="text-align:center;padding:20px;color:#6b7280;">⏳ Şagird nəticələri yüklənir...</div>';
-  
-  const [students, allScores] = await Promise.all([
-    dbQuery('users', { role: 'student' }),
-    dbQuery('scores')
-  ]);
-  const studentList = Array.isArray(students) ? students : [];
-  const scoreList = Array.isArray(allScores) ? allScores : [];
-  const scoresByUser = {};
-  scoreList.forEach(s => {
-    const uid = s.user_id;
-    if(!scoresByUser[uid]) scoresByUser[uid] = [];
-    scoresByUser[uid].push(s);
-  });
-
-  if(studentList.length === 0){ container.innerHTML = '<div class="no-data">Heç bir şagird yoxdur</div>'; return; }
+  const students = await dbQuery('users', { role: 'student' });
+  if(students.length === 0){ container.innerHTML = '<div class="no-data">Heç bir şagird yoxdur</div>'; return; }
   let html = '<div style="display:grid;gap:16px">';
-  for(const user of studentList){
-    const scores = scoresByUser[user.id] || [];
-    const totalPoints = scores.reduce((sum, s) => sum + (parseFloat(s.total_points) || 0), 0);
-    const maxPoints = scores.reduce((sum, s) => sum + (parseFloat(s.max_points) || 0), 0);
+  for(const user of students){
+    const scores = await dbQuery('scores', { user_id: user.id });
+    const totalPoints = scores.reduce((sum, s) => sum + (s.total_points || 0), 0);
+    const maxPoints = scores.reduce((sum, s) => sum + (s.max_points || 0), 0);
     html += `<div style="background:#f9fafb;padding:16px;border-radius:10px;border-left:4px solid #2563eb"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><strong style="font-size:16px">${user.name}</strong><span style="font-size:13px;color:#666">${user.email}</span></div><div style="font-size:13px;color:#666;margin-bottom:8px">Tamamlanan imtahan: ${scores.length} • Ümumi bal: <strong style="color:#1a1a2e">${totalPoints}/${maxPoints}</strong></div>`;
     if(scores.length > 0){
       html += `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">`;
       scores.forEach(sc => {
         const exam = EXAMS[sc.exam_id];
-        const statusBadge = sc.marker_edited ? '<span style="font-size:10px;background:#dcfce7;color:#15803d;padding:2px 6px;border-radius:4px;margin-left:4px;">✏️ Yoxlanılıb</span>' : '';
-        html += `<button class="btn-sm btn-view" onclick="viewCarnetFromAdmin('${user.email}','${sc.exam_id}')">📜 ${exam?.title || sc.exam_id} — ${sc.total_points}/${sc.max_points} (${sc.percent}%)${statusBadge}</button>`;
+        html += `<button class="btn-sm btn-view" onclick="viewCarnetFromAdmin('${user.email}','${sc.exam_id}')">📜 ${exam?.title || sc.exam_id} — ${sc.total_points}/${sc.max_points} (${sc.percent}%)</button>`;
       });
       html += `</div>`;
     } else {
@@ -1666,17 +1647,15 @@ async function viewCarnetFromAdmin(email, examId){
   answers.forEach((a, idx) => {
     const m = MODULES[a.part_id];
     const qNum = parseInt(a.question_num);
-    const parsed = parseAnswerPayload(a.user_answer, a.handwriting_svg);
-    const hwSvg = parsed.svg 
-      || a.handwriting_svg 
+    const hwSvg = a.handwriting_svg 
       || getHandwriting(qNum, examId, user.id) 
       || user.scores?.[examId]?.review?.find(r => r.num === qNum)?.handwriting_svg;
       
-    let adminAnsCell = `<div style="font-weight:600;font-size:14px;color:#1a1a2e;">${parsed.text || (hwSvg ? '[Əl yazısı]' : '—')}</div>`;
+    let adminAnsCell = `<div style="font-weight:600;">${a.user_answer || (hwSvg ? '[Əl yazısı]' : '—')}</div>`;
     if(hwSvg){
-      adminAnsCell += `<div class="handwriting-carnet-box" style="margin-top:6px;background:#f8fafc;border:1.5px solid #93c5fd;border-radius:8px;padding:6px 10px;max-width:280px;box-shadow:0 1px 4px rgba(37,99,235,0.08);"><div style="font-size:10.5px;color:#2563eb;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:4px;"><span>✍️ Şagirdin Əl Yazısı (SVG):</span></div><div style="background:#fff;border-radius:4px;padding:4px;border:1px solid #e2e8f0;display:flex;align-items:center;justify-content:center;">${hwSvg}</div></div>`;
+      adminAnsCell += `<div style="margin-top:6px;background:#f8fafc;border:1.5px solid #93c5fd;border-radius:8px;padding:6px 10px;max-width:280px;"><div style="font-size:10px;color:#2563eb;font-weight:700;margin-bottom:2px;">✍️ Şagirdin əl yazısı (SVG):</div><div style="background:#fff;border-radius:4px;padding:4px;border:1px solid #e2e8f0;">${hwSvg}</div></div>`;
     }
-    html += `<tr style="background:${a.is_correct ? '#dcfce7' : '#fee2e2'}" id="reviewRow_${idx}"><td style="padding:12px;border-bottom:1px solid #e5e7eb">Part ${m ? m.moduleNum : a.part_id}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.question_num}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${adminAnsCell}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.correct_answer}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.is_correct ? '✅ Düzgün' : '❌ Səhv'}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">`;
+    html += `<tr style="background:${a.is_correct ? '#dcfce7' : '#fee2e2'}" id="reviewRow_${idx}"><td style="padding:12px;border-bottom:1px solid #e5e7eb">Part ${m.moduleNum}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.question_num}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${adminAnsCell}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.correct_answer}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">${a.is_correct ? '✅ Düzgün' : '❌ Səhv'}</td><td style="padding:12px;border-bottom:1px solid #e5e7eb">`;
     if(canEdit){
       html += `<input type="number" class="marker-score-input" data-idx="${idx}" data-answer-id="${a.id}" data-score-id="${score.id}" data-user-email="${email}" data-exam="${examId}" value="${a.points}" min="0" max="${a.max_points}" step="0.5" style="width:70px;padding:6px;border:2px solid #e5e7eb;border-radius:6px;text-align:center;font-weight:700" onchange="window.opener.updateReviewScore(this)"><span style="font-size:11px;color:#666">/${a.max_points}</span>`;
     } else {
@@ -1690,7 +1669,7 @@ async function viewCarnetFromAdmin(email, examId){
   }
   html += `</div></div>`;
   const w = window.open('', '_blank', 'width=900,height=800');
-  w.document.write(`<html><head><title>NƏTİCƏ VƏRƏQİ — ${user.name}</title><link rel="stylesheet" href="style.css"><style>body{font-family:'Inter',sans-serif;padding:0;background:#f0f0eb} .handwriting-svg, svg{max-width:100%;height:auto;max-height:75px;display:block;margin:0 auto;} .handwriting-carnet-box{background:#f8fafc;border:1.5px solid #93c5fd;border-radius:8px;padding:6px 10px;max-width:280px;box-shadow:0 1px 4px rgba(37,99,235,0.08);}</style></head><body>${html}</body></html>`);
+  w.document.write(`<html><head><title>NƏTİCƏ VƏRƏQİ — ${user.name}</title><style>body{font-family:'Inter',sans-serif;padding:0;background:#f0f0eb}</style></head><body>${html}</body></html>`);
   w.document.close();
 }
 
@@ -1787,33 +1766,6 @@ async function removeMarker(email){
   if(users.length === 0) return;
   await dbUpdate('users', users[0].id, { role: 'student' });
   renderMarkersList(); renderMarkerUserSelect(); renderAdminUsers();
-}
-
-function renderQuestionNumbers(){
-  const container = document.getElementById('questionNumbers');
-  if(!container) return;
-  const mod = getCurrentModule();
-  const items = mod.questions || mod.gaps || [];
-  const answers = getAnswers();
-  let html = '';
-  items.forEach((item, idx) => {
-    const num = item.num;
-    const ans = answers[num];
-    const hw = getHandwriting(num);
-    const isAnswered = Boolean((ans && ans.trim()) || hw);
-    const isCurrent = idx === currentQ;
-    let cls = 'q-num-btn';
-    if(isCurrent) cls += ' active';
-    if(isAnswered) cls += ' answered';
-    html += `<button class="${cls}" onclick="goToQuestion(${idx})">${num}</button>`;
-  });
-  container.innerHTML = html;
-}
-
-function goToQuestion(idx){
-  currentQ = idx;
-  renderQuestion();
-  if(currentModuleId === 'part7') renderText();
 }
 
 // ==================== INIT ====================
