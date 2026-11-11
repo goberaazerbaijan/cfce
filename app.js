@@ -368,7 +368,7 @@ async function renderMarkerStats(){
     totalExams += scores.length;
     scores.forEach(s => { if(s.marker_edited) totalEdited++; });
   }
-  container.innerHTML = `<div class="marker-stat-card"><div class="stat-label">👥 Şagird Sayı</div><div class="stat-value">${totalStudents}</div></div><div class="marker-stat-card"><div class="stat-label">📝 Tamamlanan İmtahan</div><div class="stat-value">${totalExams}</div></div><div class="marker-stat-card"><div class="stat-label">️ Redaktə Edilmiş</div><div class="stat-value">${totalEdited}</div></div>`;
+  container.innerHTML = `<div class="marker-stat-card"><div class="stat-label">👥 Şagird Sayı</div><div class="stat-value">${totalStudents}</div></div><div class="marker-stat-card"><div class="stat-label">📝 Tamamlanan İmtahan</div><div class="stat-value">${totalExams}</div></div><div class="marker-stat-card"><div class="stat-label">✏️ Redaktə Edilmiş</div><div class="stat-value">${totalEdited}</div></div>`;
 }
 
 async function renderMarkerStudentList(){
@@ -407,14 +407,12 @@ function renderExamNavButtons(){
     const isActive = pid === currentModuleId;
     html += `<button class="part-nav-btn ${isActive ? 'active' : ''}" onclick="goToPart('${pid}')">Part ${m.moduleNum}</button>`;
   });
-  // ✅ YENİ: İmtahanı bitir düyməsi
   html += `<button class="result-nav-btn btn-finish-exam" onclick="finishExam()">🏁 İmtahanı bitir</button>`;
   html += `<button class="result-nav-btn" onclick="showCarnetFromCurrent()">📜 Nəticəyə bax</button>`;
   container.innerHTML = html;
   container.classList.add('show');
 }
 
-// ✅ YENİ: finishExam funksiyası
 function finishExam(){
   if(!confirm('İmtahanı bitirmək istədiyinizə əminsiniz? Cavablarınız yadda saxlanılacaq.')) return;
   showFinalResults();
@@ -447,7 +445,7 @@ function showCarnetFromCurrent(){
   showCarnet();
 }
 
-// ==================== EXAM LIST ====================
+// ==================== ✅ YENİ: ŞAGİRD KABİNETİ (1 İMTAHAN = 1 DƏFƏ + NƏTİCƏ) ====================
 async function showExamList(){
   document.getElementById('examPage').classList.add('hidden');
   document.getElementById('carnetPage').classList.add('hidden');
@@ -457,26 +455,66 @@ async function showExamList(){
   hideExamNavButtons();
   const grid = document.getElementById('examGrid');
   grid.innerHTML = '';
+  
+  // Şagirdin bütün nəticələrini al
   const scores = await dbQuery('scores', { user_id: currentUser.id });
   const scoresMap = {};
   scores.forEach(s => { scoresMap[s.exam_id] = s; });
+  
   Object.values(EXAMS).forEach(exam => {
     const score = scoresMap[exam.id];
+    const alreadyTaken = !!score;
+    
+    // Status nişanı
     let statusHtml = '<span class="status status-new">Yeni</span>';
     if(score){
       const pct = Math.round(score.percent || 0);
       statusHtml = pct >= 100 ? `<span class="status status-done">✅ ${pct}%</span>` : `<span class="status status-partial">⏳ ${pct}%</span>`;
     }
+    
     const totalQ = exam.parts.reduce((s, pid) => s + (MODULES[pid].questions?.length || MODULES[pid].gaps?.length || 0), 0);
     const card = document.createElement('div');
-    card.className = 'exam-card';
-    card.onclick = () => startExam(exam.id);
-    card.innerHTML = `<div class="exam-icon">${exam.icon}</div><h3>${exam.title}</h3><p>${exam.description}</p><div class="exam-meta"><span>${exam.parts.length} Part • ${totalQ} sual</span>${statusHtml}</div>`;
+    card.className = 'exam-card' + (alreadyTaken ? ' exam-card-taken' : '');
+    
+    // ✅ 1 İMTAHAN = 1 DƏFƏ: Artıq iştirak edibsə, nəticəni göstər; yoxdursa, başlat
+    if(alreadyTaken){
+      card.onclick = () => viewMyResult(exam.id);
+    } else {
+      card.onclick = () => startExam(exam.id);
+    }
+    
+    card.innerHTML = `
+      <div class="exam-icon">${exam.icon}</div>
+      <h3>${exam.title}</h3>
+      <p>${exam.description}</p>
+      <div class="exam-meta">
+        <span>${exam.parts.length} Part • ${totalQ} sual</span>
+        ${statusHtml}
+      </div>
+      ${alreadyTaken 
+        ? `<div style="margin-top:10px;font-size:12px;color:#2563eb;font-weight:600">📜 Nəticəni görmək üçün klikləyin</div>` 
+        : `<div style="margin-top:10px;font-size:12px;color:#16a34a;font-weight:600">▶️ Başlamaq üçün klikləyin</div>`
+      }
+    `;
     grid.appendChild(card);
   });
 }
 
+// ✅ YENİ: Şagird öz nəticəsini görsün
+async function viewMyResult(examId){
+  currentExamId = examId;
+  document.getElementById('examListPage').classList.add('hidden');
+  document.getElementById('carnetPage').classList.remove('hidden');
+  hideExamNavButtons();
+  await showCarnet();
+}
+
 function startExam(examId){
+  // ✅ 1 İMTAHAN = 1 DƏFƏ: Yoxla ki, şagird artıq bu imtahana girməyib
+  if(currentUser.scores && currentUser.scores[examId]){
+    alert('⚠️ Siz bu imtahanı artıq tamamlamısınız. Hər şagird bir imtahana yalnız 1 dəfə girə bilər.');
+    return;
+  }
   currentExamId = examId;
   currentModuleId = EXAMS[examId].parts[0];
   currentQ = 0; seconds = 0;
@@ -509,7 +547,7 @@ function renderLayout(){
   } else if(currentModuleId==='part7'){
     layout.innerHTML = `<div class="left-panel" id="leftPanel"></div><div class="right-panel"><div class="right-panel-scroll" id="rightPanelScroll"></div><div class="q-nav"><button class="nav-btn btn-prev" id="btnPrev" onclick="prevQuestion()">← Əvvəlki</button><div class="question-numbers" id="questionNumbers"></div><button class="nav-btn btn-next" id="btnNext" onclick="nextQuestion()">Növbəti →</button></div></div>`;
   }
-  const transitionHTML = `<div class="transition-screen" id="transitionScreen"><div class="transition-card"><div class="transition-icon"></div><div class="transition-title" id="tTitle">Modul Tamamlandı!</div><div class="transition-text" id="tText"></div><div class="transition-stats"><div class="stats-title">📊 İCMAL</div><div class="stats-grid"><div class="stat-box"><div class="stat-value" id="statAnswered">0</div><div class="stat-label">Cavablanan</div></div><div class="stat-box"><div class="stat-value" id="statRemaining">0</div><div class="stat-label">Boş</div></div><div class="stat-box"><div class="stat-value" id="statModule">—</div><div class="stat-label">Modul</div></div></div></div><div class="transition-buttons"><button class="btn-review" onclick="reviewCurrent()">↻ Geri Qayıt</button><button class="btn-continue" id="btnContinue" onkeypress="if(event.key==='Enter')continueToNext()">Növbəti Parta Keç →</button></div></div></div>`;
+  const transitionHTML = `<div class="transition-screen" id="transitionScreen"><div class="transition-card"><div class="transition-icon">🎯</div><div class="transition-title" id="tTitle">Modul Tamamlandı!</div><div class="transition-text" id="tText"></div><div class="transition-stats"><div class="stats-title">📊 İCMAL</div><div class="stats-grid"><div class="stat-box"><div class="stat-value" id="statAnswered">0</div><div class="stat-label">Cavablanan</div></div><div class="stat-box"><div class="stat-value" id="statRemaining">0</div><div class="stat-label">Boş</div></div><div class="stat-box"><div class="stat-value" id="statModule">—</div><div class="stat-label">Modul</div></div></div></div><div class="transition-buttons"><button class="btn-review" onclick="reviewCurrent()">↻ Geri Qayıt</button><button class="btn-continue" id="btnContinue" onkeypress="if(event.key==='Enter')continueToNext()">Növbəti Parta Keç →</button></div></div></div>`;
   const resultsHTML = `<div class="results-screen" id="resultsScreen"><div class="results-card"><div class="results-emoji" id="rEmoji">🏆</div><div class="results-title" id="rTitle">İmtahan Tamamlandı!</div><div class="results-score"><span id="rScore">0</span>/<span id="rTotal">0</span></div><div class="results-msg" id="rMsg"></div><div class="results-breakdown" id="rBreakdown"></div><div class="final-review" id="finalReview"></div><button class="btn-carnet" onclick="showCarnet()" onkeypress="if(event.key==='Enter')showCarnet()">📜 NƏTİCƏ VƏRƏQİ</button><button class="btn-restart" onclick="backToExams()" onkeypress="if(event.key==='Enter')backToExams()">🏠 İmtahanlara Qayıt</button></div></div>`;
   layout.insertAdjacentHTML('beforeend', transitionHTML);
   layout.insertAdjacentHTML('beforeend', resultsHTML);
@@ -660,7 +698,7 @@ function renderQuestion(){
     });
     let html = `<div class="q-card"><div class="q-card-header"><div class="q-number">${g.num}</div><div class="q-title">${currentModuleId==='part2' ? 'Boşluğu doldurun (1 söz)' : 'Verilən sözdən yeni söz düzəldin'}</div></div><div class="q-context">${ctx}</div>`;
     if(currentModuleId==='part3' && g.given) html += `<div class="q-word-given"><span class="kw-label">Verilən söz:</span>${g.given}</div>`;
-    html += `<div class="q-input-area"><label>Cavabınız</label><input type="text" class="q-main-input" id="mainInput" value="${val}" placeholder="cavabı yazın..." autocomplete="off" spellcheck="false" oninput="onInput(this.value)" onkeydown="onKeydown(event)"><div class="q-hint-text">${currentModuleId==='part2' ? ' Yalnız 1 söz yazın' : '💡 Verilən sözdən kök dəyişərək yeni söz düzəldin'}</div></div></div>`;
+    html += `<div class="q-input-area"><label>Cavabınız</label><input type="text" class="q-main-input" id="mainInput" value="${val}" placeholder="cavabı yazın..." autocomplete="off" spellcheck="false" oninput="onInput(this.value)" onkeydown="onKeydown(event)"><div class="q-hint-text">${currentModuleId==='part2' ? '💡 Yalnız 1 söz yazın' : '💡 Verilən sözdən kök dəyişərək yeni söz düzəldin'}</div></div></div>`;
     container.innerHTML = html;
     setTimeout(() => { const inp = document.getElementById('mainInput'); if(inp){ inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); } }, 50);
   } else if(currentModuleId==='part4'){
@@ -893,7 +931,7 @@ async function showFinalResults(){
     partReview.forEach(r => {
       rhtml += `<div class="final-review-item ${r.correct ? 'correct' : 'incorrect'}"><span class="fr-num">${r.num}</span><span class="fr-icon">${r.correct ? '✅' : '❌'}</span>`;
       if(r.correct) rhtml += `<span class="fr-user" style="color:#16a34a">${r.answer}${r.personName ? ' — ' + r.personName : ''}</span>`;
-      else rhtml += `<span class="fr-user wrong">${r.userAns}</span><span style="color:#999">→</span><span class="fr-correct">${r.answer}${r.personName ? ' — ' + r.personName : ''}</span><div style="font-size:11px;color:#f59e0b;margin-top:4px"> ${r.explanation || ''}</div>`;
+      else rhtml += `<span class="fr-user wrong">${r.userAns}</span><span style="color:#999">→</span><span class="fr-correct">${r.answer}${r.personName ? ' — ' + r.personName : ''}</span><div style="font-size:11px;color:#f59e0b;margin-top:4px">💡 ${r.explanation || ''}</div>`;
       rhtml += `</div>`;
     });
     rhtml += `</div>`;
@@ -919,16 +957,6 @@ async function showCarnet(){
   if(scores.length === 0){ alert('Nəticə tapılmadı!'); backToExams(); return; }
   const score = scores[0];
   const answers = await dbQuery('answers', { score_id: score.id });
-  
-  // ✅ YENİ: Fallback mexanizmi - əgər server cavab verməsə, localStorage-dan oxu
-  if(!answers || answers.length === 0 && currentUser.scores && currentUser.scores[examId] && currentUser.scores[examId].review) {
-    console.log('⚠️ Serverdən cavablar alınmadı, LocalStorage-dan istifadə edilir.');
-    answers = currentUser.scores[examId].review.map(r => ({
-      part_id: r.part, question_num: r.num, user_answer: r.userAns,
-      correct_answer: r.answer, is_correct: r.correct, points: r.earned, max_points: r.points
-    }));
-  }
-  
   const exam = EXAMS[examId];
   const date = new Date(score.created_at).toLocaleString('az-AZ');
   let html = `<div class="carnet-card"><div class="carnet-header"><div class="school">CAMBRIDGE FCE PLATFORM</div><h1>📜 NƏTİCƏ VƏRƏQİ</h1><div style="font-size:14px;color:#6b7280;margin-top:6px">${exam.title}</div></div><div class="carnet-student"><div><strong>Ad Soyad:</strong> ${currentUser.name}</div><div><strong>Email:</strong> ${currentUser.email}</div><div><strong>Tarix:</strong> ${date}</div></div><div class="carnet-total"><div class="total-label">Nəticə</div><div class="grade-badge grade-${score.grade}" style="font-size:24px">${score.total_points}/${score.max_points} (${score.percent}%)</div></div><table class="carnet-table"><thead><tr><th>Part</th><th>Sual</th><th>Cavab</th><th>Düzgün</th><th>Bal</th></tr></thead><tbody>`;
@@ -937,7 +965,7 @@ async function showCarnet(){
     const rowClass = a.is_correct ? 'correct-row' : 'incorrect-row';
     html += `<tr class="${rowClass}"><td>Part ${m.moduleNum}</td><td>${a.question_num}</td><td>${a.user_answer || '—'}</td><td>${a.correct_answer}</td><td><strong>${a.points}/${a.max_points}</strong></td></tr>`;
   });
-  html += `</tbody></table></div><div class="carnet-actions"><button class="btn-restart" onclick="backToExams()" onkeypress="if(event.key==='Enter')backToExams()"> İmtahanlara Qayıt</button><button class="btn-carnet" onclick="window.print()" onkeypress="if(event.key==='Enter')window.print()">🖨️ Çap et</button></div>`;
+  html += `</tbody></table></div><div class="carnet-actions"><button class="btn-restart" onclick="backToExams()" onkeypress="if(event.key==='Enter')backToExams()">🏠 İmtahanlara Qayıt</button><button class="btn-carnet" onclick="window.print()" onkeypress="if(event.key==='Enter')window.print()">🖨️ Çap et</button></div>`;
   document.getElementById('carnetPage').innerHTML = html;
 }
 
@@ -1022,19 +1050,11 @@ async function handlePDFUpload(event){
 }
 
 function parsePDFAndCreateExam(text) {
-  console.log('PDF mətni:', text);
   if (!text || text.trim().length === 0) {
-    alert(' PDF-dən mətn çıxarıla bilmədi. Fayl düzgün formatda deyil.');
+    alert('❌ PDF-dən mətn çıxarıla bilmədi.');
     return;
   }
-  const preview = text.substring(0, 1000);
-  console.log('İlk 1000 simvol:', preview);
-  const message = `✅ PDF uğurla oxundu!\n\n` +
-    `📝 Mətn uzunluğu: ${text.length} simvol\n\n` +
-    `📋 İlk 500 simvol:\n${preview.substring(0, 500)}...\n\n` +
-    `⚠️ Qeyd: Tam avtomatik PDF parsing hələ hazırlanmayıb.\n` +
-    `İmtahanı manual olaraq əlavə etmək üçün "İmtahanlar" bölməsindən istifadə edin.`;
-  alert(message);
+  alert(`✅ PDF oxundu! ${text.length} simvol.`);
 }
 
 async function renderAdminUsers(){
@@ -1222,7 +1242,6 @@ async function recalculateAndSaveScore(email, examId, scoreId){
   const answers = await dbQuery('answers', { score_id: scoreId });
   let totalEarned = 0, totalMax = 0, correctCount = 0;
   answers.forEach(a => {
-    // ✅ DÜZƏLDİ: parseFloat əlavə edildi
     totalMax += parseFloat(a.max_points) || 1;
     totalEarned += parseFloat(a.points) || 0;
     if(a.is_correct) correctCount++;
